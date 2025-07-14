@@ -1,0 +1,264 @@
+Star Citizen Economic Overhaul Proposal
+Executive Summary
+Current State Crisis: Star Citizen's persistent universe lacks a functioning economy due to unlimited free resources, minimal loss consequences, and no meaningful resource sinks. The recent capital ship implementation has further broken gameplay balance by providing massive firepower, virtual immunity to danger and substantial cargo space without operational costs.
+Proposed Solution: Implement a cascading economic system that creates meaningful resource scarcity, scales operational costs with ship size, and incentivizes player cooperation through base building and contract systems.
+Disclaimer: I do not work for CIG and do not pretend to know how they run their numbers. These numbers below are just spitballing and blue sky ideas, attempting to scale up/down without any real formula.
+
+1. Partial Loss System through Graduated Consequences
+1.1 Core Philosophy
+Create a loss system which punishes reckless play while remaining accessible to casual players through graduated consequences based on player behavior and ship value.
+1.2 Loss Categories
+Tier 1: Casual Protection (0-2 deaths per day)
+Ship Hull: Fully covered by insurance (free replacement)
+Fuel/Ammo: Lost and must be repurchased
+Equipped Gear: 90% retention (minor durability loss)
+Cargo/Inventory: 100% loss
+Cooldown: Standard insurance timer
+Tier 2: Moderate Consequences (3-5 deaths per day)
+Ship Hull: Insurance covers 90% of replacement cost
+Fuel/Ammo: Lost and must be repurchased
+Equipped Gear: 70% retention (significant durability loss)
+Cargo/Inventory: 100% loss
+Cooldown: 150% standard insurance timer
+Tier 3: Heavy Penalties (6+ deaths per day)
+Ship Hull: Insurance covers 50% of replacement cost
+Fuel/Ammo: Lost and must be repurchased
+Equipped Gear: 30% retention (most items lost)
+Cargo/Inventory: 100% loss
+Cooldown: 300% standard insurance timer
+1.3 Technical Instability Protection System
+Bug/Jank Detection Algorithm
+Given Star Citizen's technical instability (anecdotal estimation puts 40% of player deaths/losses due to bugs), implement an automated protection system:
+Detection Criteria:
+Server Desync Events: Player position discrepancies exceeding 100m
+Collision Anomalies: Unexplained collision damage without physics justification
+Instant Death Events: Player death without preceding damage accumulation
+Asset Loss Clusters: Multiple players losing assets in same location/time window
+Performance Degradation: Server frame rates below 15 FPS during incident
+Automatic Pity Triggers
+Technical Death Classification: System automatically classifies deaths as "technical" or "legitimate"
+Grace Period: 5-minute window after server issues for reduced penalties
+Cluster Analysis: If 3+ players die in same area from physics damage within 1 minute, all classified as technical
+Performance Correlation: Deaths during chronic server performance drops automatically protected
+Pity Mechanic Benefits
+Technical Deaths: Automatically treated as Tier 1 (minimal penalties)
+Full Asset Recovery: Complete restoration of SSR, fuel, and ammo for technical losses (except capitals)
+Insurance Override: Technical deaths bypass daily death count limits
+Compensation Pool: Players receive 150% of lost consumables for confirmed technical deaths
+1.4 Reckless Behavior Multipliers
+Self-Destruction by Ship Owner: Automatically triggers Tier 3 penalties (unless during technical issues)
+Repeated Deaths in Same Location: Escalates tier faster
+High-Value Ship Losses: Additional insurance premium costs
+1.5 Increasing Base Insurance Claim Timers
+Ship losses are trivialized when replacement by insurance is basically free save for a negligible amount of time and a negligible sum of aUEC should the player want to expedite the insurance claim.
+Increase insurance claim timers: Fighters start at the minimum of 30 minutes, ranging to 24 hours for the Polaris/Idris
+Places emphasis on capital ships as strategic assets: Matches the cost of time X expense to factor in the decision of using such a valuable asset
+Encourages players’ fleet diversity: With the increase of roles ranging from supply, emergency repair and fighter escorts due to the cost of spamming capitals, players will be encouraged to explore branching out to try different types of ships instead of having only one in their collection
+
+2. Ship Supply Resource (SSR) System
+2.1 Resource Overview
+Ship Supply Resource (SSR) becomes the fundamental consumable that powers all ship operations including fuel, life support, and ammunition manufacturing.
+2.2 Consumption Scaling
+Small Ships (Starter, Fighters, Light Industrial)
+Consumption Rate: 5-50 SSR per hour of operation
+Sustainability: 1 player can easily sustain solo operations
+Range: 20-50 hours of operation per cargo hold
+Degradation Rate: 5% component damage per hour when SSR reaches zero
+Medium Ships (Multi-crew, Heavy Industrial)
+Consumption Rate: 35-500 SSR per hour of operation
+Sustainability: Requires planning and regular resupply
+Range: 10-15 hours of operation per cargo hold
+Degradation Rate: 10% component damage per hour when SSR reaches zero
+Large Ships (Corvettes, Large Industrial)
+Consumption Rate: 500-3,000 SSR per hour of operation
+Sustainability: Requires dedicated supply lines or group coordination
+Range: 5-8 hours of operation per cargo hold
+Degradation Rate: 15% component damage per hour when SSR reaches zero
+Capital Ships (Battleships, Carriers, Destroyers, Frigates)
+Consumption Rate: 3,000-20,000+ SSR per hour of operation
+Sustainability: Requires organized logistics networks
+Range: 3-6 hours of operation per cargo hold
+Crew Scaling: Consumption increases without proper crew ratios
+Degradation Rate: 30% component damage per hour when SSR reaches zero
+2.3 Critical Degradation System
+SSR Depletion Consequences
+When Ship Supply Resource reaches zero, ships don't simply stop working. They begin a critical degradation process that transforms operational vessels into crippled hulls requiring rescue operations.
+Component Degradation Process
+Life Support Systems: First to fail, creating immediate crew health risks
+Power Distribution: Begins fluctuating, causing system instability
+Thrusters: Reduced efficiency, then complete failure
+Weapons: Energy weapon capacitors have reduced charge, and eventually all weapons stop firing
+Shield Generators: Regen and shield facing HP becomes unstable, then complete shutdown
+Power Plant: Final system failure, leaving ship softdead
+Degradation Timeline
+Hour 1-2: Pilot HUD warnings, minor system fluctuations
+Hour 3-5: Thruster efficiency drops to 50%, weapons become unreliable
+Hour 6-8: Shield systems fail, maneuvering becomes unstable
+Hour 9-10: Complete engine failure, ship is softdead
+Strategic Implications
+Capital Ship Vulnerability: An Idris becomes completely helpless without SSR
+Rescue Operations: Dead capital ships require engineering vessels
+Tactical Leverage: Enemy forces can force capital ships into retreat by disrupting supply lines
+Crew Dependency: Larger ships become death traps without proper logistics support
+Solo Capital Ship Operation: Economically unsustainable (200,000+ aUEC/hour operating costs)
+Small Org Capital Use: Possible but requires significant resource dedication
+Large Org Capital Use: Sustainable with proper logistics infrastructure
+
+3. Base Building & Production System
+3.1 Base Functions
+Player-constructed bases serve as the primary production and logistics hubs for the SSR economy. It’s anticipated for starter bases to produce SSR at a cost of 9 aUEC per unit and production costs get cheaper over time as the base progresses. For the sake of argument, we’ll reckon the most efficient production churns SSR out at 3 aUEC per unit.
+3.2 SSR Production Economics
+Production Costs
+Raw Materials: 2 aUEC per SSR unit (mining, salvage, purchase)
+Processing Costs: 1 aUEC per SSR unit (power, maintenance, labor)
+Total Production Cost: 3 aUEC per SSR unit
+Market Dynamics
+NPC Station Price: 10 aUEC per SSR unit (baseline market)
+Player Profit Margin: 7 aUEC per SSR unit (233% profit)
+Transport Costs: Variable based on distance and risk
+3.3 Base Infrastructure Requirements
+Tier 1 Base (Personal Operation)
+Production Capacity: 1,000 SSR per day
+Investment Cost: 500,000 aUEC
+Crew Requirements: 1-2 players
+Suitable For: Small ship operations
+Tier 2 Base (Small Org)
+Production Capacity: 10,000 SSR per day
+Investment Cost: 2,500,000 aUEC
+Crew Requirements: 3-5 players
+Suitable For: Medium ship operations, small capital support
+Tier 3 Base (Large Org)
+Production Capacity: 100,000 SSR per day
+Investment Cost: 15,000,000 aUEC
+Crew Requirements: 10-15 players
+Suitable For: Full capital ship fleet operations
+3.4 Base Vulnerability
+Attack Windows & Reinforcement Timers: Bases have a generic shield system which gets put into a reinforcement timer, alerting its owners to show up for its defense at a time window at their choosing. This is to mitigate offlining bases as seen in typical survival games.
+Defense Costs: Additional SSR consumption for defensive systems
+Insurance: Partial base insurance available at significant cost
+
+4. Player Contract System
+4.1 Contract Categories
+SSR Supply Contracts
+Delivery Contracts: Transport SSR from production bases to consumption points
+Bulk Orders: Large organizations contracting smaller groups for SSR supplies
+Emergency Resupply: High-paying contracts for urgent capital ship resupply
+SSR Emergency Resupply Contracts
+Priority Contracts: High-paying emergency contracts for stranded capital ships
+Rescue Operations: Specialized vessels designed for emergency SSR delivery
+Time-Critical Bonuses: Contracts with escalating pay based on urgency
+Risk Premiums: Dangerous rescue operations in contested space pay significantly more
+Base Construction Contracts
+Material Hauling: Transport construction materials to base sites
+Construction Crews: Labor contracts for base building
+Defense Contracts: Escort and protection services during construction
+Logistics Contracts
+Supply Chain Management: Long-term contracts for regular SSR delivery
+Route Establishment: Contracts for establishing new trade routes
+Risk Assessment: Intelligence gathering on route safety
+4.2 Contract Economics
+Platform Fee: 5% of contract value goes to the game economy (money sink)
+Reputation System: Successful contracts build reputation for better rates
+Insurance Options: Contractors can purchase cargo insurance for high-value runs
+4.3 Contract Enforcement
+Escrow System: Payments held until contract completion
+Dispute Resolution: Automated systems for common contract disputes
+Reputation Penalties: Failed contracts damage contractor reputation
+
+5. Insurance & Resource Management
+5.1 Hull Insurance (Unchanged)
+Coverage: Ship hulls continue to be replaced for free
+Rationale: Maintains accessibility while creating operational costs
+5.2 Operational Resource System
+Fuel: Must be purchased separately (1-5 aUEC per unit depending on ship size)
+Ammunition: Must be purchased separately (varies by weapon type)
+SSR Integration: Fuel and ammo are manufactured from SSR at stations
+5.3 Strategic Implications
+Self-Destruction Costs: Players lose significant aUEC in fuel/ammo costs
+Engagement Consideration: Players must weigh combat costs against potential rewards
+Logistics Planning: Long-range operations require careful resource planning
+
+6. Implementation Strategy
+6.1 Phase 1: Foundation (Months 1-3)
+Implement SSR System: Basic consumption mechanics for all ships
+Launch Partial Loss System: Graduated consequences for player deaths
+Basic Contract Platform: Simple delivery and supply contracts
+6.2 Phase 2: Infrastructure (Months 4-8)
+Base Building System: Tier 1 and Tier 2 bases available
+Production Mechanics: SSR production and processing systems
+Advanced Contracts: Construction and logistics contracts
+6.3 Phase 3: Optimization (Months 9-12)
+Tier 3 Bases: Large scale production facilities
+Economic Balancing: Fine tune consumption rates and production costs
+Advanced Features: Base warfare, insurance systems, reputation mechanics
+6.4 Migration Strategy
+Existing Players: Grandfather existing ships and equipment
+Resource Transition: Provide initial SSR stockpiles to all players
+Gradual Enforcement: Implement systems with reduced penalties initially
+Pity System Beta: Deploy technical death detection system 30 days before economic penalties
+Player Education: Clear communication about technical vs. legitimate death classification
+
+7. Expected Outcomes
+7.1 Economic Health
+Resource Circulation: SSR creates continuous economic flow
+Money Sinks: Fuel, ammo, and base maintenance remove currency
+Player Interdependence: Solo players rely on group production
+7.2 Gameplay Balance
+Capital Ship Limitation: High operational costs prevent casual capital use
+Ship Specialization: Different ship sizes have clear economic roles
+Cooperative Incentives: Group play becomes economically advantageous
+Strategic Asset Protection: Capital ships become valuable fleet assets requiring protection and support
+Emergency Response Gameplay: SSR depletion creates time-critical rescue scenarios
+Supply Line Warfare: Disrupting enemy logistics becomes a viable tactical strategy
+7.3 Player Engagement
+Meaningful Choices: Resource management becomes strategic consideration
+Long-term Goals: Base building provides persistent objectives
+Social Interaction: Contract system encourages player cooperation
+
+8. Risk Mitigation
+8.1 Player Retention Risks
+Accessibility Concerns: Partial loss system maintains casual player protection
+Learning Curve: Gradual implementation allows player adaptation
+Existing Investment: Grandfathering protects current player assets
+8.2 Economic Risks
+Market Manipulation: Multiple production sources prevent monopolies
+Inflation Control: Regular money sinks maintain currency value
+Supply Disruption: NPC stations provide baseline SSR availability
+8.2 Economic Risks
+Market Manipulation: Multiple production sources prevent monopolies
+Inflation Control: Regular money sinks maintain currency value
+Supply Disruption: NPC stations provide baseline SSR availability
+8.3 Technical Stability Risks
+False Positive Penalties: Pity system may occasionally miss legitimate technical deaths
+Mitigation: Player appeal system with 24-hour manual review
+Compensation: Retroactive asset restoration for confirmed technical losses
+System Gaming: Players may attempt to trigger pity mechanics artificially
+Mitigation: Pattern recognition algorithms detect suspicious behavior
+Penalties: Confirmed abuse results in temporary pity system suspension
+Server Performance Impact: Additional monitoring systems may affect game performance
+Mitigation: Lightweight algorithms designed for minimal server load
+Fallback: Manual GM intervention during major technical issues
+8.4 Implementation Risks
+Server Load: Contract system designed for efficient processing
+Data Integrity: Robust systems for tracking resources and contracts
+Scalability: Architecture supports growing player population
+
+9. Success Metrics
+9.1 Economic Indicators
+SSR Market Activity: Target 70% of SSR traded through player systems
+Base Construction: Target 1 base per 50 active players
+Contract Volume: Target 80% of logistics handled through contracts
+9.2 Gameplay Metrics
+Ship Distribution: Balanced usage across all ship classes
+Death Rate Reduction: 40% reduction in reckless player deaths
+Group Formation: 60% increase in organized group activities
+Technical Death Accuracy: 90% accuracy in distinguishing technical vs. legitimate deaths
+Pity System Satisfaction: 80% player approval rating for technical death handling
+9.3 Player Satisfaction
+Economy Engagement: 75% of players actively participate in economic systems
+Cooperative Play: 50% increase in multi-player operations
+Long-term Retention: Maintain 85% player retention through economic transitions
+
+Conclusion
+This economic overhaul addresses Star Citizen's fundamental problems by creating meaningful resource scarcity, scaling operational costs appropriately, and incentivizing cooperative gameplay. The system transforms the current "resource dispensary" into a true player-driven economy where choices have consequences and cooperation provides clear advantages.
+The key to success lies in the gradual implementation and careful balancing of the SSR consumption rates to ensure that solo players can still enjoy the game while making capital ship operations require the organizational commitment they deserve.
