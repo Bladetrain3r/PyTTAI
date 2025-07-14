@@ -157,6 +157,128 @@ class ClaudeProvider(LLMProvider):
                         except json.JSONDecodeError:
                             pass
 
+class OpenAIProvider(LLMProvider):
+    """OpenAI GPT provider"""
+    
+    def __init__(self, config: Dict):
+        super().__init__(config)
+        self.name = "openai"
+        self.api_key = config.get("api_key")
+        self.model = config.get("model", "gpt-4-0125-preview")  # Updated model name
+        self.api_url = "https://api.openai.com/v1/chat/completions"
+        self.timeout = config.get("timeout", 60.0)
+    
+    def test_connection(self) -> bool:
+        if not self.api_key:
+            return False
+        try:
+            with httpx.Client(timeout=5.0) as client:
+                response = client.get(
+                    "https://api.openai.com/v1/models",
+                    headers={"Authorization": f"Bearer {self.api_key}"}
+                )
+                return response.status_code == 200
+        except:
+            return False
+    
+    def get_models(self) -> Optional[List[Dict]]:
+        try:
+            with httpx.Client(timeout=5.0) as client:
+                response = client.get(
+                    "https://api.openai.com/v1/models",
+                    headers={"Authorization": f"Bearer {self.api_key}"}
+                )
+                models = response.json().get("data", [])
+                # Filter to chat models only
+                chat_models = [m for m in models if 'gpt' in m.get('id', '').lower()]
+                return chat_models
+        except:
+            # Return common models if API fails
+            return [
+                {"id": "gpt-4-0125-preview", "name": "GPT-4 Turbo"},
+                {"id": "gpt-4", "name": "GPT-4"},
+                {"id": "gpt-3.5-turbo", "name": "GPT-3.5 Turbo"},
+                {"id": "gpt-3.5-turbo-0125", "name": "GPT-3.5 Turbo Latest"}
+            ]
+    
+    def stream_completion(self, messages: List[Dict], **kwargs) -> Generator[str, None, None]:
+        """Stream completion from OpenAI"""
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json"
+        }
+        
+        data = {
+            "model": self.model,
+            "messages": messages,
+            "max_tokens": kwargs.get("max_tokens", self.config.get("max_tokens", 1024)),
+            "temperature": kwargs.get("temperature", self.config.get("temperature", 0.7)),
+            "stream": True
+        }
+        
+        # Debug: Print what we're sending (remove in production)
+        if kwargs.get("debug", False):
+            print(f"\nOpenAI Request - Model: {data['model']}")
+            print(f"Messages: {len(messages)} messages")
+        
+        try:
+            with httpx.Client(timeout=self.timeout) as client:
+                # First, let's try a non-streaming request to see if that works
+                # This helps diagnose auth/model issues
+                if kwargs.get("test_mode", False):
+                    test_data = data.copy()
+                    test_data["stream"] = False
+                    test_data["max_tokens"] = 10  # Small test
+                    
+                    test_response = client.post(self.api_url, headers=headers, json=test_data)
+                    if test_response.status_code != 200:
+                        error = test_response.json()
+                        print(f"\nOpenAI Error: {error}")
+                        return
+                    print(f"\nTest successful: {test_response.json()}")
+                    return
+                
+                # Now the actual streaming request
+                response = client.post(
+                    self.api_url,
+                    headers=headers,
+                    json=data,
+                    timeout=self.timeout
+                )
+                
+                # Check status before streaming
+                if response.status_code != 200:
+                    error_data = response.json()
+                    error_msg = error_data.get("error", {}).get("message", "Unknown error")
+                    print(f"\nOpenAI API Error: {error_msg}")
+                    return
+                
+                # Now stream the response
+                for line in response.iter_lines():
+                    if not line:
+                        continue
+                        
+                    if line.startswith("data: "):
+                        data_str = line[6:]
+                        if data_str == "[DONE]":
+                            break
+                        
+                        try:
+                            chunk = json.loads(data_str)
+                            if "choices" in chunk and len(chunk["choices"]) > 0:
+                                delta = chunk["choices"][0].get("delta", {})
+                                if "content" in delta:
+                                    yield delta["content"]
+                        except json.JSONDecodeError:
+                            pass
+                            
+        except httpx.ConnectError:
+            print("\nError: Cannot connect to OpenAI API. Check your internet connection.")
+        except httpx.TimeoutException:
+            print("\nError: Request to OpenAI timed out.")
+        except Exception as e:
+            print(f"\nUnexpected error calling OpenAI: {type(e).__name__}: {str(e)}")
+
 
 class ProviderManager:
     """Manages LLM providers and switching between them"""
@@ -164,7 +286,8 @@ class ProviderManager:
     # Registry of available providers
     PROVIDERS = {
         "lmstudio": LMStudioProvider,
-        "claude": ClaudeProvider
+        "claude": ClaudeProvider,
+        "openai": OpenAIProvider
     }
 
     PROVIDERS_FUTURE = {
