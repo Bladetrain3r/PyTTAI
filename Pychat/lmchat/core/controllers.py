@@ -21,6 +21,27 @@ except ImportError:
 
 # APIController has been replaced by the provider system in providers.py
 
+class AudioController:
+    """Handles TTS generation and playback"""
+    @staticmethod
+    def generate_tts(text: str, provider: str = "default") -> CommandResult:
+        """Generate TTS audio from text"""
+        if not text.strip():
+            return CommandResult.error(
+                "No text provided for TTS generation",
+                code="EMPTY_TEXT",
+                suggestion="Provide some text to convert to speech"
+            )
+        try:
+           print("Placeholder")
+           return CommandResult.success_text("Audio generated successfully")
+        except OutputFormatError as e:
+            return CommandResult.error(
+                f"Output format error: {str(e)}",
+                code="OUTPUT_FORMAT_ERROR",
+                suggestion="Check the output format and try again"
+            )
+
 class ClipboardController:
     """Handles clipboard operations"""
     @staticmethod

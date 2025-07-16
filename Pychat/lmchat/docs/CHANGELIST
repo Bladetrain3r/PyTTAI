@@ -1,0 +1,29 @@
+## v0.2.2 - Scripting Is Go
+[x] Exit commands changed to slash commands
+[x] Non-interactive launch parameter added (scripting!)
+[x] Startup outputs redirected to stderr (scripting)
+
+## v0.2.3 - Tighten Things Up
+[ ] All controller outputs as CommandResults
+[ ] Improve error handling and debug output
+    [ ] Specific pain points: No failure if the model doesn't load, just silently fails
+    [ ] Specific pain points: Exceeding model context length fails silently if not allowed.
+[x] Extend stderr outputs for cleaner noninteractive mode
+[x] Skip tests launch flag
+
+## v0.2.4 - TTS Time
+[ ] Implement Kokoro API provider to take in text and playback the audio stream
+    - For those long outputs or when you want a codebase explained in the background
+
+## v0.2.5 - File Ops Begin
+[ ] /ls command
+[ ] Multiple file handling
+[ ] Logging Improvements
+
+## v0.2.6 - File Ops Grow
+[ ] /find command
+[ ] Pre-emptively mitigate use of .. and other traversal vulnerabilities. Don't over-rely on the container.
+
+## v0.3.0 - Initial Operators
+[ ] :ai operator replacing implicit AI calls
+[ ] Essential redirect and pipe operators

@@ -287,7 +287,7 @@ class ProviderManager:
     PROVIDERS = {
         "lmstudio": LMStudioProvider,
         "claude": ClaudeProvider,
-        "openai": OpenAIProvider
+        "openai": OpenAIProvider,
     }
 
     PROVIDERS_FUTURE = {
@@ -297,6 +297,9 @@ class ProviderManager:
         "google": "GoogleProvider",
         "azure": "AzureProvider",
         "aws": "AWSProvider",
+        "deepseek": "DeepSeekProvider",
+        "kokoro": "KokoroProvider", # Text to Speech
+        "whisper": "WhisperProvider", # Speech to Text
         "custom": "CustomProvider"
     }
     

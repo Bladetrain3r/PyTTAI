@@ -208,4 +208,4 @@ __marimo__/
 
 # Config
 *.config.json
-Pychat_Experimental/config.json
+Pychat/config.json
