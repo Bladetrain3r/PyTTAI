@@ -20,31 +20,36 @@ def main():
     
     # Parse command line arguments
     parser = argparse.ArgumentParser(description='Pyttai - AI Shell')
-    parser.add_argument('-v', '--verbose', action='store_true', 
+    parser.add_argument('-v', '--verbose', action='store_true',
                        help='Enable verbose output for debugging')
+    parser.add_argument('-c', '--command', nargs='*',
+                       help='Run in non-interactive command mode. Use "-" for stdin, file path to read from file, or command string')
     args = parser.parse_args()
     
     # Clear screen
-    os.system('cls' if os.name == 'nt' else 'clear')
+    if not len(args.command) > 0:
+        os.system('cls' if os.name == 'nt' else 'clear')
+    else:
+        print("Running Non-Interactively")
     
     # ASCII art header (optional)
     print("""
     ╔═══════════════════════════════╗
     ║       Pyttai - AI Shell       ║
     ╚═══════════════════════════════╝
-    """)
+    """, file=sys.stderr)
     
     # Initialize chat controller with verbose flag
     chat = ChatController(verbose=args.verbose)
     
     # Test connection
-    print("Testing AI providers...", end="", flush=True)
+    print("Testing AI providers...", end="", flush=True, file=sys.stderr)
     if not chat.test_connection():
-        print(" FAILED")
-        print(f"\nCannot connect to any AI provider")
-        print("Check your provider configuration and ensure services are running.")
+        print(" FAILED", file=sys.stderr)
+        print(f"\nCannot connect to any AI provider", file=sys.stderr)
+        print("Check your provider configuration and ensure services are running.", file=sys.stderr)
         sys.exit(1)
-    print(" OK")
+    print(" OK", file=sys.stderr)
     
     # Register feature modules
     chat.register_feature(clipboard)
@@ -59,9 +64,56 @@ def main():
         print(f"Model: {provider.config.get('model', 'default')}")
     print("\nType /help for commands, 'exit' to quit")
     print("-" * 40)
+
+    # Handle non-interactive mode
+    if len(args.command) > 0:
+        print("\nRunning in command mode...")
+        
+        # Check if we have a single argument
+        if len(args.command) == 1:
+            command_input = args.command[0]
+            
+            # Read from stdin
+            if command_input == '-':
+                print("Reading from stdin...")
+                try:
+                    commands = sys.stdin.read().strip().split('\n')
+                except KeyboardInterrupt:
+                    print("\nInterrupted while reading stdin")
+                    sys.exit(1)
+            
+            # Read from file
+            elif os.path.exists(command_input):
+                print(f"Reading from file: {command_input}")
+                try:
+                    with open(command_input, 'r', encoding='utf-8') as f:
+                        commands = f.read().strip().split('\n')
+                except Exception as e:
+                    print(f"Error reading file: {e}")
+                    sys.exit(1)
+            
+            # Single command
+            else:
+                commands = [command_input]
+        else:
+            # Multiple arguments - join as single command
+            commands = [' '.join(args.command)]
+        
+        # Execute each command
+        for cmd in commands:
+            if cmd.strip():  # Skip empty lines
+                print(f"\n> {cmd}")
+                result = chat.process_input(cmd.strip())
+                if args.verbose is True:
+                    print(f"Debug: process_input returned: {result}")
+                if not result:
+                    break
+        
+        # Exit after processing
+        sys.exit(0)
     
     # Main interaction loop
-    while True:
+    while True and not args.command:
         try:
             # Custom prompt with color (if terminal supports it)
             if sys.platform != 'win32':
@@ -77,11 +129,10 @@ def main():
                 break
                 
         except KeyboardInterrupt:
-            print("\n\nInterrupted. Goodbye! 👋")
             break
         except EOFError:
             # Handle Ctrl+D
-            print("\n\nGoodbye! 👋")
+            print("End of input detected. Exiting...")
             break
         except Exception as e:
             print(f"\nUnexpected error: {e}")

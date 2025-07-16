@@ -146,6 +146,14 @@ class ChatController:
             self._handle_config_command,
             "Show or set configuration"
         )
+        
+        # Exit commands
+        self.commands.register_command(
+            "exit",
+            lambda args: False,  # Return False to exit
+            "Exit the application",
+            aliases=["quit", "bye"]
+        )
     
     def _handle_provider_command(self, args: str):
         """Handle provider management commands"""
@@ -290,9 +298,7 @@ class ChatController:
         if not user_input.strip():
             return True
         
-        # Check for exit
-        if user_input.lower() in ('exit', 'quit', 'bye'):
-            return False
+        # Note: Exit commands are handled as slash commands below
         
         # Check for built-in text commands
         if user_input.lower() == 'clear':

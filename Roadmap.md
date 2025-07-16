@@ -156,7 +156,37 @@ ssh -p 2222 pyttai@app-server
 
 ### Immediate Next Steps
 
-1. **File Operations with Container Awareness**
+1. **Non-Interactive Launch**
+Something like:
+```
+parser.add_argument('-c', '--command', 
+                   help='Execute command(s) and exit. Use - for stdin, or path for file')
+
+if args.command:
+    if args.command == '-':
+        # Read from stdin
+        commands = sys.stdin.read().strip().split('\n')
+    elif os.path.exists(args.command):
+        # Read from file
+        with open(args.command, 'r', encoding='utf-8') as f:
+            commands = f.read().strip().split('\n')
+    else:
+        # Single command
+        commands = [args.command]
+    
+    # Execute each command
+    for cmd in commands:
+        if cmd.strip():
+            if not chat.process_input(cmd.strip()):
+                break
+    
+    sys.exit(0)
+```
+
+2. **ComandResult Standardisation**
+All outputs in a structured format for easy handling and AI ingestion.
+
+3. **File Operations with Container Awareness**
 ```python
 class FileOpsController:
     def __init__(self, chat_controller):
@@ -174,7 +204,7 @@ class FileOpsController:
     def persist_file(self, source: str, name: str) -> CommandResult
 ```
 
-2. **Update Command Processing** - NO automatic AI calls
+4. **Update Command Processing** - NO automatic AI calls
 ```python
 if user_input.startswith('/'):
     result = execute_command(user_input)
@@ -182,7 +212,7 @@ if user_input.startswith('/'):
     return True
 ```
 
-3. **Container Detection**
+5. **Container Detection**
 ```python
 def detect_environment():
     if os.path.exists('/.dockerenv'):
@@ -291,6 +321,10 @@ All utilities:
 - Return structured CommandResult
 - Cross-platform implementation
 - AI-enhancement ready
+- Clean Python implementation, not trying to replicate shell applications.
+- Output in a standard object format for handling by AI and scripts
+- Consider making it less confusing than powershell object handling... 
+- :str pipe to only output the plaintext body portion of the object to stdout?
 
 ### Phase 6: Advanced Shell Features (Weeks 19-24) 🚀
 

@@ -1,0 +1,5 @@
+## v0.2.2
+[x] Exit commands changed to slash commands
+[x] Non-interactive launch parameter added (scripting!)
+[x] Startup outputs redirected to stderr (scripting)
+[ ] All controller outputs as CommandResults

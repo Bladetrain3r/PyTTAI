@@ -1,0 +1,57 @@
+# Pyttai - AI-Native Terminal
+FROM python:3.11-slim as deps
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    # Basic utilities
+    curl \
+    git \
+    vim \
+    # For clipboard support (optional)
+    xclip \
+    # Cleanup
+    && rm -rf /var/lib/apt/lists/*
+
+# Create app directory
+WORKDIR /app
+
+# Copy requirements first for better caching
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+FROM deps as final
+
+# Copy application code
+COPY main.py .
+COPY lmchat/ ./lmchat/
+
+RUN mkdir -p /home/.pyttai
+COPY config.json /home/pyttai/.pyttai/config.json
+
+# Create necessary directories
+RUN mkdir -p /workspace /sessions /data /logs /config
+
+# Create non-root user
+RUN useradd -m -s /bin/bash pyttai && \
+    chown -R pyttai:pyttai /workspace /sessions &&\
+    chown -R pyttai:pyttai /data /logs /config /home/pyttai
+
+# Set up volume mount points
+VOLUME ["/sessions", "/data", "/logs", "/config"]
+
+# Default to workspace directory
+WORKDIR /workspace
+
+# Switch to non-root user
+USER pyttai
+
+# Environment setup
+ENV PYTHONUNBUFFERED=1
+ENV PYTTAI_CONTAINER=1
+
+# Default command
+CMD ["python", "/app/main.py"]
+
+# For SSH mode (future)
+# EXPOSE 22
+# CMD ["/usr/sbin/sshd", "-D"]
