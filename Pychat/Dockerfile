@@ -1,5 +1,5 @@
 # Pyttai - AI-Native Terminal
-FROM python:3.11-slim as deps
+FROM python:3.11-slim AS deps
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -19,7 +19,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-FROM deps as final
+FROM deps AS final
 
 # Copy application code
 COPY main.py .

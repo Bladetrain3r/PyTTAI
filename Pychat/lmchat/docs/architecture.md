@@ -176,4 +176,3 @@ All errors follow consistent format:
 - Alias system
 - Operator parsing
 - Session management
-- Multi-model support

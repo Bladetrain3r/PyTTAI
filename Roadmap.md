@@ -1,6 +1,7 @@
 # Pyttai Project Status & Roadmap
 
 *AI-native shell for developers - safe, extensible, cross-platform*
+THIS IS TO BE TREATED AS MOST CURRENT - ROADMAPS IN DOCS FOLDER ARE ARCHIVE COPIES
 
 ## 🎯 Project Vision
 

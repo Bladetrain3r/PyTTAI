@@ -84,6 +84,7 @@ pip install -r requirements.txt
 
 Alternatively, you can use the Dockerfile to build an image and run it. Note you'll need to provide a config.json.
 You will need to create a bind mount to write new files.
+May produce inconsistent behaviour with /paste and /file right now.
 ```bash
 docker build -t pyttai:latest .
 docker run -it --rm -v data:/data:ro pyttai
@@ -109,6 +110,38 @@ Quit
 ```
 /exit
 ```
+
+## Noninteractive use
+
+You can also pipe command output to PyTTAI, input a string as a command, or read in a file.
+Currently very experimental and unstable. Multiline handling is odd.
+
+- stdin
+```bash
+#!/bin/bash
+echo "This is a test!" | python3 main.py -c -
+```
+- Command Evaluation
+```bash
+#!/bin/bash
+python3 main.py -c "/paste What is this?"
+```
+
+- File input
+```bash
+#!/bin/bash
+python3 -c script.ptt
+```
+- Example of ptt script (working extension)
+```
+/provider switch claude
+/file README.md Summarise this readme
+/clear
+Remind me what we were talking about again?
+```
+
+Non-interactive commands will output to stdout and can be redirected or piped as part of shell scripts.
+Preliminary, but this demonstrates some of the utility behind the design.
 
 ## Other References
 Code should be reasonably well documented but commands within the terminal are not as of yet.

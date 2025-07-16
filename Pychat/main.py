@@ -64,8 +64,8 @@ def main():
     provider = chat.providers.get_current()
     if provider:
         print(f"\nActive Provider: {provider.name}", file=sys.stderr)
-        if hasattr(provider, 'base_url'):
-            print(f"Server: {provider.base_url}", file=sys.stderr)
+        # if hasattr(provider, 'base_url'):
+        #     print(f"Server: {provider.base_url}", file=sys.stderr)
         print(f"Model: {provider.config.get('model', 'default')}", file=sys.stderr)
     print("\nType /help for commands, 'exit' to quit", file=sys.stderr)
     print("-" * 40, file=sys.stderr)
