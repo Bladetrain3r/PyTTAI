@@ -5,6 +5,9 @@
 You're looking at the readme file for PyTTAI - a Python based terminal aimed at making its use feel natural, without forcing its use at any point.
 To that end, PyTTAI follows a few core principles which need to be established first and foremost:
 
+### PyTTAI?
+Python Text Terminal with AI
+
 ### AI Is Explicit
 When giving a command, output is only processed by AI when explicitly piped into it. 
 This will be achieved with two key types of interface:
@@ -88,7 +91,7 @@ You will need to create a bind mount to write new files.
 May produce inconsistent behaviour with /paste and /file right now.
 ```bash
 docker build -t pyttai:latest .
-docker run -it --rm -v data:/data:ro pyttai
+docker run -it --rm -v $(pwd)/sessions:/sessions:rw -v $(pwd)/data:/data:ro pyttai:latest
 ```
 
 ### Getting started
