@@ -11,7 +11,12 @@
 ## v0.2.4 - File Ops Begin
 [ ] /ls command
 [ ] Multiple file handling
+[ ] Logging Improvements
 
+## v0.2.5 - File Ops Grow
+[ ] /find command
+[ ] /pwd command with app working directory as root
+[ ] Pre-emptively prevent use of .. and other traversal vulnerabilities. Don't over-rely on the container.
 
 ## v0.3.0 - Initial Operators
 [ ] :ai operator replacing implicit AI calls
