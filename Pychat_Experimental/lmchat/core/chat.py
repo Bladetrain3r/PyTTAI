@@ -150,7 +150,7 @@ class ChatController:
         # Exit commands
         self.commands.register_command(
             "exit",
-            lambda args: False,  # Return False to exit
+            lambda args: exit(0),  # Return False to exit
             "Exit the application",
             aliases=["quit", "bye"]
         )
