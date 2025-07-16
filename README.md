@@ -1,4 +1,5 @@
 # PyTTAI - A Python Terminal with added AI
+#### Version 0.2.2: Scripting Is Go
 
 ## Introduction
 You're looking at the readme file for PyTTAI - a Python based terminal aimed at making it's use feel natural, without forcing it's use at any point.
