@@ -6,7 +6,7 @@
 
 An AI-native terminal that reimagines the command line experience. A full-featured shell where AI assistance is naturally integrated through operators, making complex tasks simple while maintaining the power and composability of traditional Unix tools. Deployable standalone or as a container for debugging, operations, and development.
 
-## ✅ Current State (v0.2.1)
+## ✅ Current State (v0.2.2)
 
 ### Working Features
 1. **Multi-provider AI system**
@@ -109,6 +109,13 @@ An AI-native terminal that reimagines the command line experience. A full-featur
 | `:claude` | Use Claude | Transient - doesn't change default |
 | `:local` | Use local model | Transient - doesn't change default |
 | `:gpt` | Use OpenAI GPT | Transient - requires billing setup |
+
+#### Future Operator Considerations
+| Operator | Function | Example |
+|----------|----------|---------|
+| `:s`     | Success Conditional | /find . "jim.txt" :s /cat "jim.txt" :ai Summarise |
+| `:ss`    | Failure Conditional | /cat "jim.txt" :ss /find .. "jim.txt"
+
 
 ### Phase 3: SSH Interface & Context Preloading (Weeks 8-10) 🔐
 

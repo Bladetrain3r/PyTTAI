@@ -1,5 +1,18 @@
-## v0.2.2
+## v0.2.2 - Scripting Is Go
 [x] Exit commands changed to slash commands
 [x] Non-interactive launch parameter added (scripting!)
 [x] Startup outputs redirected to stderr (scripting)
+
+## v0.2.3 - Tighten Things Up
 [ ] All controller outputs as CommandResults
+[ ] Improve error handling and debug output
+[ ] Skip tests launch flag
+
+## v0.2.4 - File Ops Begin
+[ ] /ls command
+[ ] Multiple file handling
+
+
+## v0.3.0 - Initial Operators
+[ ] :ai operator replacing implicit AI calls
+[ ] Essential redirect and pipe operators
