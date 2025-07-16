@@ -52,6 +52,8 @@ ENV PYTTAI_CONTAINER=1
 # Default command
 CMD ["python", "/app/main.py"]
 
+# docker run -it --rm -v ./my-project:/data:ro <IMAGE_LABEL>
+
 # For SSH mode (future)
 # EXPOSE 22
 # CMD ["/usr/sbin/sshd", "-D"]

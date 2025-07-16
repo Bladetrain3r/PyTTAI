@@ -22,12 +22,14 @@ def main():
     parser = argparse.ArgumentParser(description='Pyttai - AI Shell')
     parser.add_argument('-v', '--verbose', action='store_true',
                        help='Enable verbose output for debugging')
+    parser.add_argument('-a', '--ass', action='store_true',
+                       help='Assume endpoints work.')
     parser.add_argument('-c', '--command', nargs='*',
                        help='Run in non-interactive command mode. Use "-" for stdin, file path to read from file, or command string')
     args = parser.parse_args()
     
     # Clear screen
-    if not len(args.command) > 0:
+    if not args.command:
         os.system('cls' if os.name == 'nt' else 'clear')
     else:
         print("Running Non-Interactively")
@@ -43,13 +45,16 @@ def main():
     chat = ChatController(verbose=args.verbose)
     
     # Test connection
-    print("Testing AI providers...", end="", flush=True, file=sys.stderr)
-    if not chat.test_connection():
-        print(" FAILED", file=sys.stderr)
-        print(f"\nCannot connect to any AI provider", file=sys.stderr)
-        print("Check your provider configuration and ensure services are running.", file=sys.stderr)
-        sys.exit(1)
-    print(" OK", file=sys.stderr)
+    if args.ass:
+        print("Skipping Testing")
+    else:
+        print("Testing AI providers...", end="", flush=True, file=sys.stderr)
+        if not chat.test_connection():
+            print(" FAILED", file=sys.stderr)
+            print(f"\nCannot connect to any AI provider", file=sys.stderr)
+            print("Check your provider configuration and ensure services are running.", file=sys.stderr)
+            sys.exit(1)
+        print(" OK", file=sys.stderr)
     
     # Register feature modules
     chat.register_feature(clipboard)
@@ -66,7 +71,7 @@ def main():
     print("-" * 40)
 
     # Handle non-interactive mode
-    if len(args.command) > 0:
+    if args.command:
         print("\nRunning in command mode...")
         
         # Check if we have a single argument
