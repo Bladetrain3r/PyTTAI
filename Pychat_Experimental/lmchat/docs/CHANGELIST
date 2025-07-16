@@ -6,7 +6,10 @@
 ## v0.2.3 - Tighten Things Up
 [ ] All controller outputs as CommandResults
 [ ] Improve error handling and debug output
-[ ] Skip tests launch flag
+[ ] Extend stderr outputs for cleaner noninteractive mode
+[ ] Specific pain points: No failure if the model doesn't load, just silently fails
+[ ] Specific pain points: Exceeding model context length fails silently if not allowed.
+[x] Skip tests launch flag
 
 ## v0.2.4 - File Ops Begin
 [ ] /ls command
