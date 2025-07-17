@@ -3,13 +3,10 @@ FROM python:3.11-slim AS deps
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
-    # Basic utilities
     curl \
     git \
     vim \
-    # For clipboard support (optional)
     xclip \
-    # Cleanup
     && rm -rf /var/lib/apt/lists/*
 
 # Create app directory
@@ -21,14 +18,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 FROM deps AS final
 
-# Copy application code
 COPY main.py .
 COPY lmchat/ ./lmchat/
 
-RUN mkdir -p /home/.pyttai
+RUN mkdir -p /home/pyttai/.pyttai
 COPY config.json /home/pyttai/.pyttai/config.json
 
-# Create necessary directories
+COPY scripts/ /scripts
+
 RUN mkdir -p /workspace /sessions /data /logs /config
 
 # Create non-root user
@@ -50,7 +47,7 @@ ENV PYTHONUNBUFFERED=1
 ENV PYTTAI_CONTAINER=1
 
 # Default command
-CMD ["python", "/app/main.py"]
+CMD ["/bin/bash", "/scripts/entrypoint.sh"]
 
 # docker run -it --rm -v ./my-project:/data:ro <IMAGE_LABEL>
 
