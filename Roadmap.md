@@ -73,6 +73,7 @@ An AI-native terminal that reimagines the command line experience. A full-featur
 /find <pattern>        # Recursive file search
 /cat <file>            # Display file contents (rename from /file)
 /persist <file> <name> # Save workspace file to /sessions
+/checkout <file>       # Duplicate /data to /workspace for modification.
 ```
 
 #### Container File Model
