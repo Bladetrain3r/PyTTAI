@@ -91,7 +91,7 @@ You will need to create a bind mount to write new files.
 May produce inconsistent behaviour with /paste and /file right now.
 ```bash
 docker build -t pyttai:latest .
-docker run -it --rm -v $(pwd)/sessions:/sessions:rw -v $(pwd)/data:/data:ro pyttai:latest
+docker run -it --rm --mount type=bind,src=$(pwd)/sessions,dst=/sessions --mount type=bind,src=$(pwd)/data,dst=/data,ro pyttai:latest
 ```
 
 ### Getting started
