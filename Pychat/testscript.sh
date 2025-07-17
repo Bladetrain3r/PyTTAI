@@ -1,18 +1,20 @@
 #!/bin/bash
-find . -type f | grep -v "__pycache__" > list.txt
+[ -d temp ] || mkdir temp
+find . -type f | grep -v "__pycache__" | grep -v "config.json" | grep -v "*.explain"> list.txt
 while read -r file; do
     if [[ -f "$file" ]]; then
         echo "Processing $file"
         # Add your processing commands here
+        explainfile=$(basename "$file").explain
         cp $file "temp.txt"
-        python3 main.py -a -c test.ptt > $file.explain
+        python3 main.py -a -c test.ptt > ./temp/$explainfile
     else
         echo "$file is not a regular file, skipping."
     fi
 done < list.txt
 
 echo '' > output.txt
-find . -type f -name "*.explain" -exec sh -c 'echo "File: {}"; cat {}' \; >> output.txt
+find ./temp -type f -name "*.explain" -exec sh -c 'echo "File: {}"; cat {}' \; >> output.txt
 rm list.txt
 rm temp.txt
 find . -type f -name "*.explain" -delete
