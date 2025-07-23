@@ -5,6 +5,7 @@ Business logic controllers for different operations
 
 import json
 import sys
+import base64
 from typing import Optional, Callable, Generator, Dict, List
 from pathlib import Path
 
@@ -18,6 +19,14 @@ try:
     HAS_CLIPBOARD = True
 except ImportError:
     HAS_CLIPBOARD = False
+
+# Optional image clipboard support
+try:
+    from PIL import ImageGrab, Image
+    import io
+    HAS_IMAGE_CLIPBOARD = True
+except ImportError:
+    HAS_IMAGE_CLIPBOARD = False
 
 # APIController has been replaced by the provider system in providers.py
 
@@ -71,14 +80,74 @@ class ClipboardController:
             )
     
     @staticmethod
+    def get_image() -> CommandResult:
+        """Get image from clipboard"""
+        if not HAS_IMAGE_CLIPBOARD:
+            return CommandResult.error(
+                "Image clipboard functionality not available",
+                code="NO_IMAGE_CLIPBOARD",
+                suggestion="Install Pillow: pip install Pillow"
+            )
+        
+        try:
+            # Try to grab image from clipboard
+            img = ImageGrab.grabclipboard()
+            
+            if img is None:
+                return CommandResult.error(
+                    "No image in clipboard",
+                    code="NO_IMAGE",
+                    suggestion="Copy an image to clipboard first"
+                )
+            
+            # Convert to PNG and base64
+            buffer = io.BytesIO()
+            
+            # Handle different image modes
+            if img.mode == 'RGBA':
+                img.save(buffer, format='PNG')
+                format_type = 'png'
+            else:
+                # Convert to RGB for JPEG
+                if img.mode != 'RGB':
+                    img = img.convert('RGB')
+                img.save(buffer, format='JPEG', quality=90)
+                format_type = 'jpeg'
+            
+            buffer.seek(0)
+            base64_image = base64.b64encode(buffer.read()).decode('utf-8')
+            
+            return CommandResult.success_data({
+                "data": base64_image,
+                "format": format_type,
+                "width": img.width,
+                "height": img.height
+            })
+            
+        except Exception as e:
+            return CommandResult.error(
+                f"Failed to get image from clipboard: {str(e)}",
+                code="IMAGE_CLIPBOARD_ERROR",
+                suggestion="Try copying the image again"
+            )
+    
+    @staticmethod
     def is_available() -> bool:
         return HAS_CLIPBOARD
+    
+    @staticmethod
+    def is_image_available() -> bool:
+        return HAS_IMAGE_CLIPBOARD
 
 class FileController:
     """Handles file operations"""
+    
+    # Image file extensions
+    IMAGE_EXTENSIONS = {'.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp', '.ico', '.tiff'}
+    
     @staticmethod
     def read_file(path: Path) -> CommandResult:
-        """Read file content"""
+        """Read file content (text or image)"""
         try:
             # Check if path exists
             if not path.exists():
@@ -96,7 +165,11 @@ class FileController:
                     suggestion="Provide a path to a file, not a directory"
                 )
             
-            # Try to read with UTF-8 encoding
+            # Check if it's an image
+            if path.suffix.lower() in FileController.IMAGE_EXTENSIONS:
+                return FileController.read_image(path)
+            
+            # Try to read as text with UTF-8 encoding
             try:
                 content = path.read_text(encoding='utf-8')
                 return CommandResult.success_text(content)
@@ -126,8 +199,62 @@ class FileController:
             )
     
     @staticmethod
+    def read_image(path: Path) -> CommandResult:
+        """Read image file and return base64 encoded data"""
+        try:
+            # Read binary data
+            image_data = path.read_bytes()
+            
+            # Encode to base64
+            base64_image = base64.b64encode(image_data).decode('utf-8')
+            
+            # Get format from extension
+            format_type = path.suffix.lower()[1:]  # Remove the dot
+            if format_type == 'jpg':
+                format_type = 'jpeg'
+            
+            result_data = {
+                "data": base64_image,
+                "format": format_type,
+                "filename": path.name,
+                "size": len(image_data)
+            }
+            
+            # Try to get dimensions if Pillow is available
+            if HAS_IMAGE_CLIPBOARD:
+                try:
+                    from PIL import Image
+                    img = Image.open(io.BytesIO(image_data))
+                    result_data["width"] = img.width
+                    result_data["height"] = img.height
+                except:
+                    pass  # Dimensions are optional
+            
+            return CommandResult.success_data(result_data)
+            
+        except Exception as e:
+            return CommandResult.error(
+                f"Error reading image file: {str(e)}",
+                code="IMAGE_READ_ERROR",
+                suggestion="Check if the file is a valid image"
+            )
+    
+    @staticmethod
+    def is_image_file(path: Path) -> bool:
+        """Check if file is an image based on extension"""
+        return path.suffix.lower() in FileController.IMAGE_EXTENSIONS
+    
+    @staticmethod
     def detect_language(path: Path) -> CommandResult:
         """Detect programming language from file extension"""
+        # Check if it's an image first
+        if FileController.is_image_file(path):
+            return CommandResult.success_data({
+                "language": "image",
+                "source": "extension",
+                "image_format": path.suffix.lower()[1:]
+            })
+        
         extensions = {
             '.py': 'python',
             '.js': 'javascript',

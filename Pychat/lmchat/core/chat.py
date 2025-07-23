@@ -293,6 +293,69 @@ class ChatController:
             print(f"\nError: {e}")
             return False
     
+    def send_image(self, text: str, image_data: str, image_format: str) -> bool:
+        """Send a message with an image to the vision model"""
+        provider = self.providers.get_current()
+        if not provider:
+            print("No LLM provider configured")
+            return False
+        
+        # Check if current provider supports vision
+        if hasattr(provider, 'supports_vision') and not provider.supports_vision():
+            print("Current model doesn't support images. Switch to a vision model.")
+            return False
+        
+        # Create message with image
+        message_content = [
+            {
+                "type": "text",
+                "text": text
+            },
+            {
+                "type": "image_url",
+                "image_url": {
+                    "url": f"data:image/{image_format};base64,{image_data}"
+                }
+            }
+        ]
+        
+        # Add user message with image
+        self.conversation.add_message("user", message_content)
+        
+        # Build messages for API
+        messages = []
+        
+        # Add system prompt if configured
+        system_prompt = self.config.get("system_prompt")
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        
+        # Add conversation messages
+        messages.extend(self.conversation.get_messages_for_api(
+            max_messages=self.config.get("max_conversation_length", 100)
+        ))
+        
+        # Stream response
+        print(f"\n{provider.name.title()}: ", end="", flush=True)
+        assistant_response = ""
+        
+        try:
+            for chunk in provider.stream_completion(messages):
+                print(chunk, end="", flush=True)
+                assistant_response += chunk
+            
+            print()  # New line
+            
+            # Add assistant response to conversation
+            if assistant_response:
+                self.conversation.add_message("assistant", assistant_response)
+            
+            return True
+            
+        except Exception as e:
+            print(f"\nError: {e}")
+            return False
+    
     def process_input(self, user_input: str) -> bool:
         """Process user input and return True if should continue"""
         if not user_input.strip():

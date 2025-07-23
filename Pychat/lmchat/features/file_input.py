@@ -4,6 +4,7 @@ File input feature - adds file reading commands
 """
 
 from pathlib import Path
+from lmchat.core.models import OutputFormat
 
 def create_file_handler(chat_controller):
     """Create file command handler"""
@@ -28,13 +29,33 @@ def create_file_handler(chat_controller):
             print(f"Error reading file: {file_result.error}")
             return
         
+        # Check if it's an image
+        if file_result.format == OutputFormat.DATA:
+            # It's an image
+            image_data = file_result.content
+            print(f"Sending image {file_path.name}...")
+            chat_controller.send_image(
+                prompt if prompt else f"[Image: {file_path.name}]",
+                image_data['data'],
+                image_data['format']
+            )
+            return
+        
+        # Text file handling
         content = file_result.content
         
         # Detect language (returns CommandResult)
         language_result = chat_controller.file.detect_language(file_path)
         language = None
         if language_result.success:
-            language = language_result.content.get('language')
+            language_info = language_result.content
+            language = language_info.get('language')
+            
+            # Skip code formatting for images
+            if language == 'image':
+                # This shouldn't happen as we handle images above, but just in case
+                print(f"File appears to be an image but was read as text")
+                return
         
         # Build message
         if language:

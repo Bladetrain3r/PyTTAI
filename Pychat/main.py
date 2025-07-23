@@ -6,6 +6,10 @@ Pyttai - AI Shell - Main entry point
 import sys
 import os
 from pathlib import Path
+try:
+    import readline  # This enables arrow keys/history in Unix-like systems
+except ImportError:
+    pass  # readline not available on Windows, but not needed there
 
 
 # Add parent directory to path for development
