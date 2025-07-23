@@ -73,6 +73,7 @@ An AI-native terminal that reimagines the command line experience. A full-featur
 /find <pattern>        # Recursive file search
 /cat <file>            # Display file contents (rename from /file)
 /persist <file> <name> # Save workspace file to /sessions
+/checkout <file>       # Duplicate /data to /workspace for modification.
 ```
 
 #### Container File Model
@@ -164,37 +165,10 @@ ssh -p 2222 pyttai@app-server
 
 ### Immediate Next Steps
 
-1. **Non-Interactive Launch**
-Something like:
-```
-parser.add_argument('-c', '--command', 
-                   help='Execute command(s) and exit. Use - for stdin, or path for file')
-
-if args.command:
-    if args.command == '-':
-        # Read from stdin
-        commands = sys.stdin.read().strip().split('\n')
-    elif os.path.exists(args.command):
-        # Read from file
-        with open(args.command, 'r', encoding='utf-8') as f:
-            commands = f.read().strip().split('\n')
-    else:
-        # Single command
-        commands = [args.command]
-    
-    # Execute each command
-    for cmd in commands:
-        if cmd.strip():
-            if not chat.process_input(cmd.strip()):
-                break
-    
-    sys.exit(0)
-```
-
-2. **ComandResult Standardisation**
+1. **ComandResult Standardisation**
 All outputs in a structured format for easy handling and AI ingestion.
 
-3. **File Operations with Container Awareness**
+2. **File Operations with Container Awareness**
 ```python
 class FileOpsController:
     def __init__(self, chat_controller):
@@ -212,15 +186,10 @@ class FileOpsController:
     def persist_file(self, source: str, name: str) -> CommandResult
 ```
 
-4. **Update Command Processing** - NO automatic AI calls
-```python
-if user_input.startswith('/'):
-    result = execute_command(user_input)
-    display_result(result)  # To user, not AI
-    return True
-```
+3. **Refactor Command Processor**
+Needs to avoid using AI unless specified. Implement :ai early?
 
-5. **Container Detection**
+4. **Container Detection**
 ```python
 def detect_environment():
     if os.path.exists('/.dockerenv'):

@@ -19,7 +19,8 @@ Python handles operators differently from shells. Instead of fighting with `|`, 
 | `:ii` | `<<` | Here-document input | `format :ii END\ntext\nEND` |
 | `:s` | `&&` | Run next if success | `test connection :s download` |
 | `:f` | `\|\|` | Run next if failure | `connect :f use-offline` |
-| `:c` | (custom) | Read file as command input | `send :c prompt.txt` |
+| `::` | `;`    | Statement terminator  | `/ls-recurse :r list.txt :: /file list.txt :ai summarise this folder for me.` |
+| `:c` | (custom) | Read file as command input (script/noninteractive) | `send :c prompt.txt` |
 
 ## Parsing Rules
 
