@@ -1,0 +1,87 @@
+[
+  {
+    "line": 6,
+    "code": "from pathlib import Path",
+    "comment": "Import module"
+  },
+  {
+    "line": 7,
+    "code": "from lmchat.core.models import OutputFormat",
+    "comment": "Import module"
+  },
+  {
+    "line": 9,
+    "code": "def create_file_handler(chat_controller):",
+    "comment": "Function definition"
+  },
+  {
+    "line": 11,
+    "code": "def handle_file(args: str):",
+    "comment": "Function definition"
+  },
+  {
+    "line": 12,
+    "code": "if not args:",
+    "comment": "Negative condition check"
+  },
+  {
+    "line": 13,
+    "code": "print(\"Usage: /file <path> [optional prompt]\")",
+    "comment": "Debug output"
+  },
+  {
+    "line": 17,
+    "code": "parts = args.split(' ', 1)",
+    "comment": "Split string"
+  },
+  {
+    "line": 18,
+    "code": "file_path = Path(parts[0])",
+    "comment": "Path object creation"
+  },
+  {
+    "line": 22,
+    "code": "if not file_path.exists():",
+    "comment": "Negative condition check"
+  },
+  {
+    "line": 23,
+    "code": "print(f\"File not found: {file_path}\")",
+    "comment": "Debug output"
+  },
+  {
+    "line": 28,
+    "code": "if not file_result.success:",
+    "comment": "Negative condition check"
+  },
+  {
+    "line": 29,
+    "code": "print(f\"Error reading file: {file_result.error}\")",
+    "comment": "Debug output"
+  },
+  {
+    "line": 36,
+    "code": "print(f\"Sending image {file_path.name}...\")",
+    "comment": "Debug output"
+  },
+  {
+    "line": 57,
+    "code": "print(f\"File appears to be an image but was rea...",
+    "comment": "Debug output"
+  },
+  {
+    "line": 71,
+    "code": "print(f\"Sending {file_path.name}...\")",
+    "comment": "Debug output"
+  },
+  {
+    "line": 74,
+    "code": "return handle_file",
+    "comment": "Return value"
+  },
+  {
+    "line": 76,
+    "code": "def register_commands(chat_controller):",
+    "comment": "Function definition"
+  }
+]

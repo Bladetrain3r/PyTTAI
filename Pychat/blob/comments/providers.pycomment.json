@@ -1,0 +1,492 @@
+[
+  {
+    "line": 6,
+    "code": "from abc import ABC, abstractmethod",
+    "comment": "Import module"
+  },
+  {
+    "line": 7,
+    "code": "from typing import Generator, List, Dict, Optional",
+    "comment": "Import module"
+  },
+  {
+    "line": 8,
+    "code": "import json",
+    "comment": "Import module"
+  },
+  {
+    "line": 9,
+    "code": "import httpx",
+    "comment": "Import module"
+  },
+  {
+    "line": 11,
+    "code": "from .models import CommandResult",
+    "comment": "Import module"
+  },
+  {
+    "line": 13,
+    "code": "class LLMProvider(ABC):",
+    "comment": "Class definition"
+  },
+  {
+    "line": 16,
+    "code": "def __init__(self, config: Dict):",
+    "comment": "Constructor method"
+  },
+  {
+    "line": 20,
+    "code": "@abstractmethod",
+    "comment": "Decorator applied"
+  },
+  {
+    "line": 21,
+    "code": "def test_connection(self) -> bool:",
+    "comment": "Function definition"
+  },
+  {
+    "line": 25,
+    "code": "@abstractmethod",
+    "comment": "Decorator applied"
+  },
+  {
+    "line": 26,
+    "code": "def stream_completion(self, messages: List[Dict...",
+    "comment": "Function definition"
+  },
+  {
+    "line": 30,
+    "code": "@abstractmethod",
+    "comment": "Decorator applied"
+  },
+  {
+    "line": 31,
+    "code": "def get_models(self) -> Optional[List[Dict]]:",
+    "comment": "Function definition"
+  },
+  {
+    "line": 36,
+    "code": "class LMStudioProvider(LLMProvider):",
+    "comment": "Class definition"
+  },
+  {
+    "line": 39,
+    "code": "def __init__(self, config: Dict):",
+    "comment": "Constructor method"
+  },
+  {
+    "line": 46,
+    "code": "def test_connection(self) -> bool:",
+    "comment": "Function definition"
+  },
+  {
+    "line": 47,
+    "code": "try:",
+    "comment": "Error handling block"
+  },
+  {
+    "line": 50,
+    "code": "return response.status_code == 200",
+    "comment": "Return value"
+  },
+  {
+    "line": 51,
+    "code": "except:",
+    "comment": "Catch all exceptions"
+  },
+  {
+    "line": 52,
+    "code": "return False",
+    "comment": "Return value"
+  },
+  {
+    "line": 54,
+    "code": "def get_models(self) -> Optional[List[Dict]]:",
+    "comment": "Function definition"
+  },
+  {
+    "line": 55,
+    "code": "try:",
+    "comment": "Error handling block"
+  },
+  {
+    "line": 58,
+    "code": "return response.json().get(\"data\", [])",
+    "comment": "Return value"
+  },
+  {
+    "line": 59,
+    "code": "except:",
+    "comment": "Catch all exceptions"
+  },
+  {
+    "line": 60,
+    "code": "return None",
+    "comment": "Explicit null return"
+  },
+  {
+    "line": 62,
+    "code": "def stream_completion(self, messages: List[Dict...",
+    "comment": "Function definition"
+  },
+  {
+    "line": 74,
+    "code": "for line in response.iter_lines():",
+    "comment": "Iterate over collection"
+  },
+  {
+    "line": 80,
+    "code": "try:",
+    "comment": "Error handling block"
+  },
+  {
+    "line": 81,
+    "code": "chunk = json.loads(data_str)",
+    "comment": "Parse JSON from string"
+  },
+  {
+    "line": 86,
+    "code": "except json.JSONDecodeError:",
+    "comment": "Catch specific exception"
+  },
+  {
+    "line": 90,
+    "code": "class ClaudeProvider(LLMProvider):",
+    "comment": "Class definition"
+  },
+  {
+    "line": 93,
+    "code": "def __init__(self, config: Dict):",
+    "comment": "Constructor method"
+  },
+  {
+    "line": 101,
+    "code": "def test_connection(self) -> bool:",
+    "comment": "Function definition"
+  },
+  {
+    "line": 102,
+    "code": "if not self.api_key:",
+    "comment": "Negative condition check"
+  },
+  {
+    "line": 103,
+    "code": "return False",
+    "comment": "Return value"
+  },
+  {
+    "line": 105,
+    "code": "return True",
+    "comment": "Return value"
+  },
+  {
+    "line": 107,
+    "code": "def get_models(self) -> Optional[List[Dict]]:",
+    "comment": "Function definition"
+  },
+  {
+    "line": 110,
+    "code": "return [",
+    "comment": "Return value"
+  },
+  {
+    "line": 116,
+    "code": "def stream_completion(self, messages: List[Dict...",
+    "comment": "Function definition"
+  },
+  {
+    "line": 122,
+    "code": "for msg in messages:",
+    "comment": "Iterate over collection"
+  },
+  {
+    "line": 126,
+    "code": "claude_messages.append(msg)",
+    "comment": "Add to list"
+  },
+  {
+    "line": 147,
+    "code": "for line in response.iter_lines():",
+    "comment": "Iterate over collection"
+  },
+  {
+    "line": 153,
+    "code": "try:",
+    "comment": "Error handling block"
+  },
+  {
+    "line": 154,
+    "code": "chunk = json.loads(data_str)",
+    "comment": "Parse JSON from string"
+  },
+  {
+    "line": 157,
+    "code": "except json.JSONDecodeError:",
+    "comment": "Catch specific exception"
+  },
+  {
+    "line": 160,
+    "code": "class OpenAIProvider(LLMProvider):",
+    "comment": "Class definition"
+  },
+  {
+    "line": 163,
+    "code": "def __init__(self, config: Dict):",
+    "comment": "Constructor method"
+  },
+  {
+    "line": 171,
+    "code": "def test_connection(self) -> bool:",
+    "comment": "Function definition"
+  },
+  {
+    "line": 172,
+    "code": "if not self.api_key:",
+    "comment": "Negative condition check"
+  },
+  {
+    "line": 173,
+    "code": "return False",
+    "comment": "Return value"
+  },
+  {
+    "line": 174,
+    "code": "try:",
+    "comment": "Error handling block"
+  },
+  {
+    "line": 180,
+    "code": "return response.status_code == 200",
+    "comment": "Return value"
+  },
+  {
+    "line": 181,
+    "code": "except:",
+    "comment": "Catch all exceptions"
+  },
+  {
+    "line": 182,
+    "code": "return False",
+    "comment": "Return value"
+  },
+  {
+    "line": 184,
+    "code": "def get_models(self) -> Optional[List[Dict]]:",
+    "comment": "Function definition"
+  },
+  {
+    "line": 185,
+    "code": "try:",
+    "comment": "Error handling block"
+  },
+  {
+    "line": 193,
+    "code": "chat_models = [m for m in models if 'gpt' in m....",
+    "comment": "Iterate over collection"
+  },
+  {
+    "line": 194,
+    "code": "return chat_models",
+    "comment": "Return value"
+  },
+  {
+    "line": 195,
+    "code": "except:",
+    "comment": "Catch all exceptions"
+  },
+  {
+    "line": 197,
+    "code": "return [",
+    "comment": "Return value"
+  },
+  {
+    "line": 204,
+    "code": "def stream_completion(self, messages: List[Dict...",
+    "comment": "Function definition"
+  },
+  {
+    "line": 221,
+    "code": "print(f\"\\nOpenAI Request - Model: {data['model'...",
+    "comment": "Debug output"
+  },
+  {
+    "line": 222,
+    "code": "print(f\"Messages: {len(messages)} messages\")",
+    "comment": "Debug output"
+  },
+  {
+    "line": 224,
+    "code": "try:",
+    "comment": "Error handling block"
+  },
+  {
+    "line": 236,
+    "code": "print(f\"\\nOpenAI Error: {error}\")",
+    "comment": "Debug output"
+  },
+  {
+    "line": 238,
+    "code": "print(f\"\\nTest successful: {test_response.json(...",
+    "comment": "Debug output"
+  },
+  {
+    "line": 253,
+    "code": "print(f\"\\nOpenAI API Error: {error_msg}\")",
+    "comment": "Debug output"
+  },
+  {
+    "line": 257,
+    "code": "for line in response.iter_lines():",
+    "comment": "Iterate over collection"
+  },
+  {
+    "line": 258,
+    "code": "if not line:",
+    "comment": "Negative condition check"
+  },
+  {
+    "line": 266,
+    "code": "try:",
+    "comment": "Error handling block"
+  },
+  {
+    "line": 267,
+    "code": "chunk = json.loads(data_str)",
+    "comment": "Parse JSON from string"
+  },
+  {
+    "line": 272,
+    "code": "except json.JSONDecodeError:",
+    "comment": "Catch specific exception"
+  },
+  {
+    "line": 275,
+    "code": "except httpx.ConnectError:",
+    "comment": "Catch specific exception"
+  },
+  {
+    "line": 276,
+    "code": "print(\"\\nError: Cannot connect to OpenAI API. C...",
+    "comment": "Debug output"
+  },
+  {
+    "line": 277,
+    "code": "except httpx.TimeoutException:",
+    "comment": "Catch specific exception"
+  },
+  {
+    "line": 278,
+    "code": "print(\"\\nError: Request to OpenAI timed out.\")",
+    "comment": "Debug output"
+  },
+  {
+    "line": 279,
+    "code": "except Exception as e:",
+    "comment": "Catch specific exception"
+  },
+  {
+    "line": 280,
+    "code": "print(f\"\\nUnexpected error calling OpenAI: {typ...",
+    "comment": "Debug output"
+  },
+  {
+    "line": 283,
+    "code": "class ProviderManager:",
+    "comment": "Class definition"
+  },
+  {
+    "line": 306,
+    "code": "def __init__(self):",
+    "comment": "Constructor method"
+  },
+  {
+    "line": 310,
+    "code": "def add_provider(self, name: str, config: Dict)...",
+    "comment": "Function definition"
+  },
+  {
+    "line": 315,
+    "code": "return CommandResult.error(",
+    "comment": "Return value"
+  },
+  {
+    "line": 318,
+    "code": "suggestion=f\"Available providers: {', '.join(se...",
+    "comment": "Join strings"
+  },
+  {
+    "line": 321,
+    "code": "try:",
+    "comment": "Error handling block"
+  },
+  {
+    "line": 325,
+    "code": "if not self.current_provider:",
+    "comment": "Negative condition check"
+  },
+  {
+    "line": 327,
+    "code": "return CommandResult.success_text(f\"Added provi...",
+    "comment": "Return value"
+  },
+  {
+    "line": 329,
+    "code": "return CommandResult.error(",
+    "comment": "Return value"
+  },
+  {
+    "line": 334,
+    "code": "except Exception as e:",
+    "comment": "Catch specific exception"
+  },
+  {
+    "line": 335,
+    "code": "return CommandResult.error(",
+    "comment": "Return value"
+  },
+  {
+    "line": 341,
+    "code": "def set_current(self, name: str) -> CommandResult:",
+    "comment": "Function definition"
+  },
+  {
+    "line": 344,
+    "code": "return CommandResult.error(",
+    "comment": "Return value"
+  },
+  {
+    "line": 347,
+    "code": "suggestion=f\"Available providers: {', '.join(se...",
+    "comment": "Join strings"
+  },
+  {
+    "line": 351,
+    "code": "return CommandResult.success_text(f\"Switched to...",
+    "comment": "Return value"
+  },
+  {
+    "line": 353,
+    "code": "def get_current(self) -> Optional[LLMProvider]:",
+    "comment": "Function definition"
+  },
+  {
+    "line": 356,
+    "code": "return self.providers.get(self.current_provider)",
+    "comment": "Return value"
+  },
+  {
+    "line": 357,
+    "code": "return None",
+    "comment": "Explicit null return"
+  },
+  {
+    "line": 359,
+    "code": "def list_providers(self) -> Dict[str, str]:",
+    "comment": "Function definition"
+  },
+  {
+    "line": 361,
+    "code": "return {",
+    "comment": "Return value"
+  }
+]

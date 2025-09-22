@@ -1,0 +1,317 @@
+[
+  {
+    "line": 6,
+    "code": "import json",
+    "comment": "Import module"
+  },
+  {
+    "line": 7,
+    "code": "from pathlib import Path",
+    "comment": "Import module"
+  },
+  {
+    "line": 8,
+    "code": "from datetime import datetime",
+    "comment": "Import module"
+  },
+  {
+    "line": 9,
+    "code": "from typing import List, Dict, Optional, Any",
+    "comment": "Import module"
+  },
+  {
+    "line": 10,
+    "code": "from enum import Enum",
+    "comment": "Import module"
+  },
+  {
+    "line": 12,
+    "code": "class OutputFormat(Enum):",
+    "comment": "Class definition"
+  },
+  {
+    "line": 21,
+    "code": "class CommandResult:",
+    "comment": "Class definition"
+  },
+  {
+    "line": 23,
+    "code": "def __init__(self,",
+    "comment": "Constructor method"
+  },
+  {
+    "line": 37,
+    "code": "def to_dict(self) -> Dict:",
+    "comment": "Function definition"
+  },
+  {
+    "line": 61,
+    "code": "return result",
+    "comment": "Return value"
+  },
+  {
+    "line": 63,
+    "code": "@classmethod",
+    "comment": "Decorator applied"
+  },
+  {
+    "line": 64,
+    "code": "def success_text(cls, text: str) -> 'CommandRes...",
+    "comment": "Function definition"
+  },
+  {
+    "line": 66,
+    "code": "return cls(success=True, format=OutputFormat.TE...",
+    "comment": "Return value"
+  },
+  {
+    "line": 68,
+    "code": "@classmethod",
+    "comment": "Decorator applied"
+  },
+  {
+    "line": 69,
+    "code": "def success_data(cls, data: Dict) -> 'CommandRe...",
+    "comment": "Function definition"
+  },
+  {
+    "line": 71,
+    "code": "return cls(success=True, format=OutputFormat.DA...",
+    "comment": "Return value"
+  },
+  {
+    "line": 73,
+    "code": "@classmethod",
+    "comment": "Decorator applied"
+  },
+  {
+    "line": 74,
+    "code": "def error(cls, error: str, code: Optional[str] ...",
+    "comment": "Function definition"
+  },
+  {
+    "line": 76,
+    "code": "return cls(success=False, format=OutputFormat.E...",
+    "comment": "Return value"
+  },
+  {
+    "line": 78,
+    "code": "class Message:",
+    "comment": "Class definition"
+  },
+  {
+    "line": 80,
+    "code": "def __init__(self, role: str, content: str, tim...",
+    "comment": "Constructor method"
+  },
+  {
+    "line": 83,
+    "code": "self.timestamp = timestamp or datetime.now()",
+    "comment": "Get current datetime"
+  },
+  {
+    "line": 85,
+    "code": "def to_dict(self) -> Dict:",
+    "comment": "Function definition"
+  },
+  {
+    "line": 86,
+    "code": "return {",
+    "comment": "Return value"
+  },
+  {
+    "line": 92,
+    "code": "@classmethod",
+    "comment": "Decorator applied"
+  },
+  {
+    "line": 93,
+    "code": "def from_dict(cls, data: Dict) -> 'Message':",
+    "comment": "Function definition"
+  },
+  {
+    "line": 95,
+    "code": "return cls(data[\"role\"], data[\"content\"], times...",
+    "comment": "Return value"
+  },
+  {
+    "line": 97,
+    "code": "class Conversation:",
+    "comment": "Class definition"
+  },
+  {
+    "line": 99,
+    "code": "def __init__(self):",
+    "comment": "Constructor method"
+  },
+  {
+    "line": 102,
+    "code": "\"created\": datetime.now(),",
+    "comment": "Get current datetime"
+  },
+  {
+    "line": 107,
+    "code": "def add_message(self, role: str, content: str):",
+    "comment": "Function definition"
+  },
+  {
+    "line": 108,
+    "code": "self.messages.append(Message(role, content))",
+    "comment": "Add to list"
+  },
+  {
+    "line": 110,
+    "code": "def get_messages_for_api(self, include_system: ...",
+    "comment": "Function definition"
+  },
+  {
+    "line": 117,
+    "code": "return [{\"role\": msg.role, \"content\": msg.conte...",
+    "comment": "Iterate over collection"
+  },
+  {
+    "line": 119,
+    "code": "def clear(self):",
+    "comment": "Function definition"
+  },
+  {
+    "line": 122,
+    "code": "def to_dict(self) -> Dict:",
+    "comment": "Function definition"
+  },
+  {
+    "line": 123,
+    "code": "return {",
+    "comment": "Return value"
+  },
+  {
+    "line": 129,
+    "code": "\"messages\": [msg.to_dict() for msg in self.mess...",
+    "comment": "Iterate over collection"
+  },
+  {
+    "line": 132,
+    "code": "def save(self, path: Path):",
+    "comment": "Function definition"
+  },
+  {
+    "line": 133,
+    "code": "with open(path, 'w', encoding='utf-8') as f:",
+    "comment": "File operation with auto-close"
+  },
+  {
+    "line": 134,
+    "code": "json.dump(self.to_dict(), f, indent=2, ensure_a...",
+    "comment": "Write JSON to file"
+  },
+  {
+    "line": 136,
+    "code": "@classmethod",
+    "comment": "Decorator applied"
+  },
+  {
+    "line": 137,
+    "code": "def load(cls, path: Path) -> 'Conversation':",
+    "comment": "Function definition"
+  },
+  {
+    "line": 138,
+    "code": "with open(path, encoding='utf-8') as f:",
+    "comment": "File operation with auto-close"
+  },
+  {
+    "line": 139,
+    "code": "data = json.load(f)",
+    "comment": "Parse JSON from file"
+  },
+  {
+    "line": 147,
+    "code": "conv.messages = [Message.from_dict(msg) for msg...",
+    "comment": "Iterate over collection"
+  },
+  {
+    "line": 148,
+    "code": "return conv",
+    "comment": "Return value"
+  },
+  {
+    "line": 150,
+    "code": "class Config:",
+    "comment": "Class definition"
+  },
+  {
+    "line": 152,
+    "code": "def __init__(self, path: Path):",
+    "comment": "Constructor method"
+  },
+  {
+    "line": 156,
+    "code": "def _load(self) -> Dict:",
+    "comment": "Function definition"
+  },
+  {
+    "line": 157,
+    "code": "if self.path.exists():",
+    "comment": "Check existence"
+  },
+  {
+    "line": 158,
+    "code": "with open(self.path, encoding='utf-8') as f:",
+    "comment": "File operation with auto-close"
+  },
+  {
+    "line": 159,
+    "code": "return json.load(f)",
+    "comment": "Parse JSON from file"
+  },
+  {
+    "line": 160,
+    "code": "return {}",
+    "comment": "Return value"
+  },
+  {
+    "line": 162,
+    "code": "def get(self, key: str, default=None):",
+    "comment": "Function definition"
+  },
+  {
+    "line": 163,
+    "code": "return self.data.get(key, default)",
+    "comment": "Return value"
+  },
+  {
+    "line": 165,
+    "code": "def set(self, key: str, value):",
+    "comment": "Function definition"
+  },
+  {
+    "line": 169,
+    "code": "def save(self):",
+    "comment": "Function definition"
+  },
+  {
+    "line": 170,
+    "code": "with open(self.path, 'w', encoding='utf-8') as f:",
+    "comment": "File operation with auto-close"
+  },
+  {
+    "line": 171,
+    "code": "json.dump(self.data, f, indent=2, ensure_ascii=...",
+    "comment": "Write JSON to file"
+  },
+  {
+    "line": 173,
+    "code": "@classmethod",
+    "comment": "Decorator applied"
+  },
+  {
+    "line": 174,
+    "code": "def get_default_config(cls) -> Dict:",
+    "comment": "Function definition"
+  },
+  {
+    "line": 175,
+    "code": "return {",
+    "comment": "Return value"
+  }
+]

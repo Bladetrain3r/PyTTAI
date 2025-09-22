@@ -2,7 +2,7 @@
 #### Version 0.2.2: Scripting Is Go
 
 ## Introduction
-You're looking at the readme file for PyTTAI - a Python based terminal aimed at making its use feel natural, without forcing its use at any point.
+You're looking at the readme file for PyTTAI - a Python based terminal aimed at making the use of Langauge Models feel natural, without forcing it into workflows unnecessarily.
 To that end, PyTTAI follows a few core principles which need to be established first and foremost:
 
 ### PyTTAI?

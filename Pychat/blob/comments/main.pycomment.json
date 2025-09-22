@@ -1,0 +1,287 @@
+[
+  {
+    "line": 6,
+    "code": "import sys",
+    "comment": "Import module"
+  },
+  {
+    "line": 7,
+    "code": "import os",
+    "comment": "Import module"
+  },
+  {
+    "line": 8,
+    "code": "from pathlib import Path",
+    "comment": "Import module"
+  },
+  {
+    "line": 9,
+    "code": "try:",
+    "comment": "Error handling block"
+  },
+  {
+    "line": 11,
+    "code": "except ImportError:",
+    "comment": "Catch specific exception"
+  },
+  {
+    "line": 16,
+    "code": "sys.path.insert(0, str(Path(__file__).parent))",
+    "comment": "Path object creation"
+  },
+  {
+    "line": 17,
+    "code": "from lmchat.core.chat import ChatController",
+    "comment": "Import module"
+  },
+  {
+    "line": 18,
+    "code": "from lmchat.features import clipboard, file_input",
+    "comment": "Import module"
+  },
+  {
+    "line": 21,
+    "code": "def main():",
+    "comment": "Function definition"
+  },
+  {
+    "line": 23,
+    "code": "import argparse",
+    "comment": "Import module"
+  },
+  {
+    "line": 36,
+    "code": "if not args.command:",
+    "comment": "Negative condition check"
+  },
+  {
+    "line": 39,
+    "code": "print(\"Running Non-Interactively\", file=sys.std...",
+    "comment": "Debug output"
+  },
+  {
+    "line": 42,
+    "code": "print(\"\"\"",
+    "comment": "Debug output"
+  },
+  {
+    "line": 53,
+    "code": "print(\"Skipping Testing\", file=sys.stderr)",
+    "comment": "Debug output"
+  },
+  {
+    "line": 55,
+    "code": "print(\"Testing AI providers...\", end=\"\", flush=...",
+    "comment": "Debug output"
+  },
+  {
+    "line": 56,
+    "code": "if not chat.test_connection():",
+    "comment": "Negative condition check"
+  },
+  {
+    "line": 57,
+    "code": "print(\" FAILED\", file=sys.stderr)",
+    "comment": "Debug output"
+  },
+  {
+    "line": 58,
+    "code": "print(f\"\\nCannot connect to any AI provider\", f...",
+    "comment": "Debug output"
+  },
+  {
+    "line": 59,
+    "code": "print(\"Check your provider configuration and en...",
+    "comment": "Debug output"
+  },
+  {
+    "line": 60,
+    "code": "sys.exit(1)",
+    "comment": "Exit program"
+  },
+  {
+    "line": 61,
+    "code": "print(\" OK\", file=sys.stderr)",
+    "comment": "Debug output"
+  },
+  {
+    "line": 70,
+    "code": "print(f\"\\nActive Provider: {provider.name}\", fi...",
+    "comment": "Debug output"
+  },
+  {
+    "line": 73,
+    "code": "print(f\"Model: {provider.config.get('model', 'd...",
+    "comment": "Debug output"
+  },
+  {
+    "line": 74,
+    "code": "print(\"\\nType /help for commands, 'exit' to qui...",
+    "comment": "Debug output"
+  },
+  {
+    "line": 75,
+    "code": "print(\"-\" * 40, file=sys.stderr)",
+    "comment": "Debug output"
+  },
+  {
+    "line": 79,
+    "code": "print(\"\\nRunning in command mode...\", file=sys....",
+    "comment": "Debug output"
+  },
+  {
+    "line": 87,
+    "code": "print(\"Reading from stdin...\", file=sys.stderr)",
+    "comment": "Debug output"
+  },
+  {
+    "line": 88,
+    "code": "try:",
+    "comment": "Error handling block"
+  },
+  {
+    "line": 89,
+    "code": "commands = sys.stdin.read().strip().split('\\n')",
+    "comment": "Split string"
+  },
+  {
+    "line": 90,
+    "code": "except KeyboardInterrupt:",
+    "comment": "Catch specific exception"
+  },
+  {
+    "line": 91,
+    "code": "print(\"\\nInterrupted while reading stdin\", file...",
+    "comment": "Conditional loop"
+  },
+  {
+    "line": 92,
+    "code": "sys.exit(1)",
+    "comment": "Exit program"
+  },
+  {
+    "line": 95,
+    "code": "elif os.path.exists(command_input):",
+    "comment": "Path operation"
+  },
+  {
+    "line": 96,
+    "code": "print(f\"Reading from file: {command_input}\", fi...",
+    "comment": "Debug output"
+  },
+  {
+    "line": 97,
+    "code": "try:",
+    "comment": "Error handling block"
+  },
+  {
+    "line": 98,
+    "code": "with open(command_input, 'r', encoding='utf-8')...",
+    "comment": "File operation with auto-close"
+  },
+  {
+    "line": 99,
+    "code": "commands = f.read().strip().split('\\n')",
+    "comment": "Split string"
+  },
+  {
+    "line": 100,
+    "code": "except Exception as e:",
+    "comment": "Catch specific exception"
+  },
+  {
+    "line": 101,
+    "code": "print(f\"Error reading file: {e}\", file=sys.stderr)",
+    "comment": "Debug output"
+  },
+  {
+    "line": 102,
+    "code": "sys.exit(1)",
+    "comment": "Exit program"
+  },
+  {
+    "line": 109,
+    "code": "commands = [' '.join(args.command)]",
+    "comment": "Join strings"
+  },
+  {
+    "line": 112,
+    "code": "for cmd in commands:",
+    "comment": "Iterate over collection"
+  },
+  {
+    "line": 114,
+    "code": "print(f\"\\n> {cmd}\", file=sys.stderr)",
+    "comment": "Debug output"
+  },
+  {
+    "line": 115,
+    "code": "result = chat.process_input(cmd.strip())",
+    "comment": "Remove whitespace"
+  },
+  {
+    "line": 117,
+    "code": "print(f\"Debug: process_input returned: {result}\")",
+    "comment": "Debug output"
+  },
+  {
+    "line": 118,
+    "code": "if not result:",
+    "comment": "Negative condition check"
+  },
+  {
+    "line": 122,
+    "code": "sys.exit(0)",
+    "comment": "Exit program"
+  },
+  {
+    "line": 125,
+    "code": "while True and not args.command:",
+    "comment": "Infinite loop"
+  },
+  {
+    "line": 126,
+    "code": "try:",
+    "comment": "Error handling block"
+  },
+  {
+    "line": 136,
+    "code": "if not chat.process_input(user_input):",
+    "comment": "Negative condition check"
+  },
+  {
+    "line": 137,
+    "code": "print(\"\\nGoodbye! \ud83d\udc4b\", file=sys.stderr)",
+    "comment": "Debug output"
+  },
+  {
+    "line": 140,
+    "code": "except KeyboardInterrupt:",
+    "comment": "Catch specific exception"
+  },
+  {
+    "line": 142,
+    "code": "except EOFError:",
+    "comment": "Catch specific exception"
+  },
+  {
+    "line": 144,
+    "code": "print(\"End of input detected. Exiting...\", file...",
+    "comment": "Debug output"
+  },
+  {
+    "line": 146,
+    "code": "except Exception as e:",
+    "comment": "Catch specific exception"
+  },
+  {
+    "line": 147,
+    "code": "print(f\"\\nUnexpected error: {e}\", file=sys.stderr)",
+    "comment": "Debug output"
+  },
+  {
+    "line": 148,
+    "code": "print(\"Type 'exit' to quit or press Enter to co...",
+    "comment": "Debug output"
+  }
+]

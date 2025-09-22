@@ -1,0 +1,12 @@
+[
+  {
+    "line": 8,
+    "code": "from .core import ChatController, ProviderManager",
+    "comment": "Import module"
+  },
+  {
+    "line": 9,
+    "code": "from .core.providers import LMStudioProvider, C...",
+    "comment": "Import module"
+  }
+]

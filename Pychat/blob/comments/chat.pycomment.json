@@ -1,0 +1,542 @@
+[
+  {
+    "line": 6,
+    "code": "import sys",
+    "comment": "Import module"
+  },
+  {
+    "line": 7,
+    "code": "from pathlib import Path",
+    "comment": "Import module"
+  },
+  {
+    "line": 8,
+    "code": "from typing import Optional",
+    "comment": "Import module"
+  },
+  {
+    "line": 10,
+    "code": "from .models import Conversation, Config, Comma...",
+    "comment": "Import module"
+  },
+  {
+    "line": 11,
+    "code": "from .controllers import (",
+    "comment": "Import module"
+  },
+  {
+    "line": 17,
+    "code": "from .providers import ProviderManager, LMStudi...",
+    "comment": "Import module"
+  },
+  {
+    "line": 19,
+    "code": "class ChatController:",
+    "comment": "Class definition"
+  },
+  {
+    "line": 22,
+    "code": "def __init__(self, config_path: Optional[Path] ...",
+    "comment": "Constructor method"
+  },
+  {
+    "line": 32,
+    "code": "self.app_dir.mkdir(exist_ok=True)",
+    "comment": "Create directory"
+  },
+  {
+    "line": 39,
+    "code": "if not self.config.data:",
+    "comment": "Negative condition check"
+  },
+  {
+    "line": 59,
+    "code": "def _setup_providers(self):",
+    "comment": "Function definition"
+  },
+  {
+    "line": 73,
+    "code": "if not result.success:",
+    "comment": "Negative condition check"
+  },
+  {
+    "line": 74,
+    "code": "print(f\"Warning: Could not setup default provid...",
+    "comment": "Debug output"
+  },
+  {
+    "line": 84,
+    "code": "loaded_providers.append(name)",
+    "comment": "Add to list"
+  },
+  {
+    "line": 86,
+    "code": "failed_providers.append((name, result.error))",
+    "comment": "Add to list"
+  },
+  {
+    "line": 91,
+    "code": "for name in loaded_providers:",
+    "comment": "Iterate over collection"
+  },
+  {
+    "line": 92,
+    "code": "print(f\"Loaded provider: {name}\")",
+    "comment": "Debug output"
+  },
+  {
+    "line": 94,
+    "code": "print(f\"Failed to load provider {name}: {error}\")",
+    "comment": "Debug output"
+  },
+  {
+    "line": 99,
+    "code": "print(f\"Loaded providers: {', '.join(loaded_pro...",
+    "comment": "Debug output"
+  },
+  {
+    "line": 102,
+    "code": "print(f\"Failed to load {name}: {error}\")",
+    "comment": "Debug output"
+  },
+  {
+    "line": 109,
+    "code": "def _register_builtin_commands(self):",
+    "comment": "Function definition"
+  },
+  {
+    "line": 114,
+    "code": "lambda args: print(self.commands.get_help()),",
+    "comment": "Debug output"
+  },
+  {
+    "line": 158,
+    "code": "def _handle_provider_command(self, args: str):",
+    "comment": "Function definition"
+  },
+  {
+    "line": 160,
+    "code": "if not args:",
+    "comment": "Negative condition check"
+  },
+  {
+    "line": 163,
+    "code": "print(\"\\nConfigured providers:\")",
+    "comment": "Debug output"
+  },
+  {
+    "line": 165,
+    "code": "print(f\"  {name}: {info}\")",
+    "comment": "Debug output"
+  },
+  {
+    "line": 167,
+    "code": "parts = args.split(maxsplit=1)",
+    "comment": "Split string"
+  },
+  {
+    "line": 172,
+    "code": "print(result.error if not result.success else r...",
+    "comment": "Negative condition check"
+  },
+  {
+    "line": 176,
+    "code": "print(\"Use /config providers.name.key=value to ...",
+    "comment": "Debug output"
+  },
+  {
+    "line": 178,
+    "code": "print(\"Usage: /provider [switch NAME]\")",
+    "comment": "Debug output"
+  },
+  {
+    "line": 180,
+    "code": "def _handle_model_command(self, args: str):",
+    "comment": "Function definition"
+  },
+  {
+    "line": 183,
+    "code": "if not provider:",
+    "comment": "Negative condition check"
+  },
+  {
+    "line": 184,
+    "code": "print(\"No provider configured\")",
+    "comment": "Debug output"
+  },
+  {
+    "line": 189,
+    "code": "print(f\"\\nAvailable models ({provider.name}):\")",
+    "comment": "Debug output"
+  },
+  {
+    "line": 190,
+    "code": "for model in models:",
+    "comment": "Iterate over collection"
+  },
+  {
+    "line": 191,
+    "code": "print(f\"  - {model['id']}\")",
+    "comment": "Debug output"
+  },
+  {
+    "line": 193,
+    "code": "print(\"Could not fetch model information\")",
+    "comment": "Debug output"
+  },
+  {
+    "line": 195,
+    "code": "def _handle_config_command(self, args: str):",
+    "comment": "Function definition"
+  },
+  {
+    "line": 197,
+    "code": "if not args:",
+    "comment": "Negative condition check"
+  },
+  {
+    "line": 199,
+    "code": "print(\"\\nCurrent configuration:\")",
+    "comment": "Debug output"
+  },
+  {
+    "line": 202,
+    "code": "print(f\"  providers:\")",
+    "comment": "Debug output"
+  },
+  {
+    "line": 204,
+    "code": "print(f\"    {pname}: {pconfig.get('type', 'unkn...",
+    "comment": "Debug output"
+  },
+  {
+    "line": 206,
+    "code": "print(f\"  {key}: {value}\")",
+    "comment": "Debug output"
+  },
+  {
+    "line": 210,
+    "code": "key, value = args.split('=', 1)",
+    "comment": "Split string"
+  },
+  {
+    "line": 211,
+    "code": "key = key.strip()",
+    "comment": "Remove whitespace"
+  },
+  {
+    "line": 212,
+    "code": "value = value.strip()",
+    "comment": "Remove whitespace"
+  },
+  {
+    "line": 215,
+    "code": "try:",
+    "comment": "Error handling block"
+  },
+  {
+    "line": 220,
+    "code": "elif '.' in value and value.replace('.', '').is...",
+    "comment": "Replace substring"
+  },
+  {
+    "line": 222,
+    "code": "except:",
+    "comment": "Catch all exceptions"
+  },
+  {
+    "line": 227,
+    "code": "keys = key.split('.')",
+    "comment": "Split string"
+  },
+  {
+    "line": 229,
+    "code": "for k in keys[:-1]:",
+    "comment": "Iterate over collection"
+  },
+  {
+    "line": 238,
+    "code": "print(f\"Set {key} = {value}\")",
+    "comment": "Debug output"
+  },
+  {
+    "line": 240,
+    "code": "print(\"Usage: /config key=value\")",
+    "comment": "Debug output"
+  },
+  {
+    "line": 242,
+    "code": "def _clear_conversation(self):",
+    "comment": "Function definition"
+  },
+  {
+    "line": 245,
+    "code": "print(\"Conversation cleared.\")",
+    "comment": "Debug output"
+  },
+  {
+    "line": 247,
+    "code": "def test_connection(self) -> bool:",
+    "comment": "Function definition"
+  },
+  {
+    "line": 250,
+    "code": "return provider.test_connection() if provider e...",
+    "comment": "Return value"
+  },
+  {
+    "line": 252,
+    "code": "def send_message(self, message: str) -> bool:",
+    "comment": "Function definition"
+  },
+  {
+    "line": 255,
+    "code": "if not provider:",
+    "comment": "Negative condition check"
+  },
+  {
+    "line": 256,
+    "code": "print(\"No LLM provider configured\")",
+    "comment": "Debug output"
+  },
+  {
+    "line": 257,
+    "code": "return False",
+    "comment": "Return value"
+  },
+  {
+    "line": 268,
+    "code": "messages.append({\"role\": \"system\", \"content\": s...",
+    "comment": "Add to list"
+  },
+  {
+    "line": 271,
+    "code": "messages.extend(self.conversation.get_messages_...",
+    "comment": "Add multiple items"
+  },
+  {
+    "line": 276,
+    "code": "print(f\"\\n{provider.name.title()}: \", end=\"\", f...",
+    "comment": "Debug output"
+  },
+  {
+    "line": 279,
+    "code": "try:",
+    "comment": "Error handling block"
+  },
+  {
+    "line": 280,
+    "code": "for chunk in provider.stream_completion(messages):",
+    "comment": "Iterate over collection"
+  },
+  {
+    "line": 281,
+    "code": "print(chunk, end=\"\", flush=True)",
+    "comment": "Debug output"
+  },
+  {
+    "line": 290,
+    "code": "return True",
+    "comment": "Return value"
+  },
+  {
+    "line": 292,
+    "code": "except Exception as e:",
+    "comment": "Catch specific exception"
+  },
+  {
+    "line": 293,
+    "code": "print(f\"\\nError: {e}\")",
+    "comment": "Debug output"
+  },
+  {
+    "line": 294,
+    "code": "return False",
+    "comment": "Return value"
+  },
+  {
+    "line": 296,
+    "code": "def send_image(self, text: str, image_data: str...",
+    "comment": "Function definition"
+  },
+  {
+    "line": 299,
+    "code": "if not provider:",
+    "comment": "Negative condition check"
+  },
+  {
+    "line": 300,
+    "code": "print(\"No LLM provider configured\")",
+    "comment": "Debug output"
+  },
+  {
+    "line": 301,
+    "code": "return False",
+    "comment": "Return value"
+  },
+  {
+    "line": 305,
+    "code": "print(\"Current model doesn't support images. Sw...",
+    "comment": "Debug output"
+  },
+  {
+    "line": 306,
+    "code": "return False",
+    "comment": "Return value"
+  },
+  {
+    "line": 331,
+    "code": "messages.append({\"role\": \"system\", \"content\": s...",
+    "comment": "Add to list"
+  },
+  {
+    "line": 334,
+    "code": "messages.extend(self.conversation.get_messages_...",
+    "comment": "Add multiple items"
+  },
+  {
+    "line": 339,
+    "code": "print(f\"\\n{provider.name.title()}: \", end=\"\", f...",
+    "comment": "Debug output"
+  },
+  {
+    "line": 342,
+    "code": "try:",
+    "comment": "Error handling block"
+  },
+  {
+    "line": 343,
+    "code": "for chunk in provider.stream_completion(messages):",
+    "comment": "Iterate over collection"
+  },
+  {
+    "line": 344,
+    "code": "print(chunk, end=\"\", flush=True)",
+    "comment": "Debug output"
+  },
+  {
+    "line": 353,
+    "code": "return True",
+    "comment": "Return value"
+  },
+  {
+    "line": 355,
+    "code": "except Exception as e:",
+    "comment": "Catch specific exception"
+  },
+  {
+    "line": 356,
+    "code": "print(f\"\\nError: {e}\")",
+    "comment": "Debug output"
+  },
+  {
+    "line": 357,
+    "code": "return False",
+    "comment": "Return value"
+  },
+  {
+    "line": 359,
+    "code": "def process_input(self, user_input: str) -> bool:",
+    "comment": "Function definition"
+  },
+  {
+    "line": 360,
+    "code": "\"\"\"Process user input and return True if should...",
+    "comment": "Return value"
+  },
+  {
+    "line": 361,
+    "code": "if not user_input.strip():",
+    "comment": "Negative condition check"
+  },
+  {
+    "line": 362,
+    "code": "return True",
+    "comment": "Return value"
+  },
+  {
+    "line": 369,
+    "code": "return True",
+    "comment": "Return value"
+  },
+  {
+    "line": 374,
+    "code": "if not self.commands.execute_command(command, a...",
+    "comment": "Negative condition check"
+  },
+  {
+    "line": 375,
+    "code": "print(f\"Unknown command: /{command} (use /help)\")",
+    "comment": "Debug output"
+  },
+  {
+    "line": 376,
+    "code": "return True",
+    "comment": "Return value"
+  },
+  {
+    "line": 380,
+    "code": "return True",
+    "comment": "Return value"
+  },
+  {
+    "line": 382,
+    "code": "def register_feature(self, feature_module):",
+    "comment": "Function definition"
+  },
+  {
+    "line": 387,
+    "code": "def run(self):",
+    "comment": "Function definition"
+  },
+  {
+    "line": 389,
+    "code": "print(\"Pyttai - AI Shell\")",
+    "comment": "Debug output"
+  },
+  {
+    "line": 392,
+    "code": "print(f\"Provider: {provider.name}\")",
+    "comment": "Debug output"
+  },
+  {
+    "line": 393,
+    "code": "print(\"Type /help for commands, 'exit' to quit\\n\")",
+    "comment": "Debug output"
+  },
+  {
+    "line": 395,
+    "code": "while True:",
+    "comment": "Infinite loop"
+  },
+  {
+    "line": 396,
+    "code": "try:",
+    "comment": "Error handling block"
+  },
+  {
+    "line": 398,
+    "code": "if not self.process_input(user_input):",
+    "comment": "Negative condition check"
+  },
+  {
+    "line": 400,
+    "code": "except KeyboardInterrupt:",
+    "comment": "Catch specific exception"
+  },
+  {
+    "line": 401,
+    "code": "print(\"\\n\\nGoodbye!\")",
+    "comment": "Debug output"
+  },
+  {
+    "line": 403,
+    "code": "except Exception as e:",
+    "comment": "Catch specific exception"
+  },
+  {
+    "line": 404,
+    "code": "print(f\"Error: {e}\")",
+    "comment": "Debug output"
+  }
+]

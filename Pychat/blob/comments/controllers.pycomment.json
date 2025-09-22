@@ -1,0 +1,567 @@
+[
+  {
+    "line": 6,
+    "code": "import json",
+    "comment": "Import module"
+  },
+  {
+    "line": 7,
+    "code": "import sys",
+    "comment": "Import module"
+  },
+  {
+    "line": 8,
+    "code": "import base64",
+    "comment": "Import module"
+  },
+  {
+    "line": 9,
+    "code": "from typing import Optional, Callable, Generato...",
+    "comment": "Import module"
+  },
+  {
+    "line": 10,
+    "code": "from pathlib import Path",
+    "comment": "Import module"
+  },
+  {
+    "line": 12,
+    "code": "import httpx",
+    "comment": "Import module"
+  },
+  {
+    "line": 14,
+    "code": "from .models import CommandResult, OutputFormat",
+    "comment": "Import module"
+  },
+  {
+    "line": 17,
+    "code": "try:",
+    "comment": "Error handling block"
+  },
+  {
+    "line": 18,
+    "code": "import pyperclip",
+    "comment": "Import module"
+  },
+  {
+    "line": 20,
+    "code": "except ImportError:",
+    "comment": "Catch specific exception"
+  },
+  {
+    "line": 24,
+    "code": "try:",
+    "comment": "Error handling block"
+  },
+  {
+    "line": 25,
+    "code": "from PIL import ImageGrab, Image",
+    "comment": "Import module"
+  },
+  {
+    "line": 26,
+    "code": "import io",
+    "comment": "Import module"
+  },
+  {
+    "line": 28,
+    "code": "except ImportError:",
+    "comment": "Catch specific exception"
+  },
+  {
+    "line": 33,
+    "code": "class AudioController:",
+    "comment": "Class definition"
+  },
+  {
+    "line": 35,
+    "code": "@staticmethod",
+    "comment": "Decorator applied"
+  },
+  {
+    "line": 36,
+    "code": "def generate_tts(text: str, provider: str = \"de...",
+    "comment": "Function definition"
+  },
+  {
+    "line": 38,
+    "code": "if not text.strip():",
+    "comment": "Negative condition check"
+  },
+  {
+    "line": 39,
+    "code": "return CommandResult.error(",
+    "comment": "Return value"
+  },
+  {
+    "line": 44,
+    "code": "try:",
+    "comment": "Error handling block"
+  },
+  {
+    "line": 45,
+    "code": "print(\"Placeholder\")",
+    "comment": "Debug output"
+  },
+  {
+    "line": 46,
+    "code": "return CommandResult.success_text(\"Audio genera...",
+    "comment": "Return value"
+  },
+  {
+    "line": 47,
+    "code": "except OutputFormatError as e:",
+    "comment": "Catch specific exception"
+  },
+  {
+    "line": 48,
+    "code": "return CommandResult.error(",
+    "comment": "Return value"
+  },
+  {
+    "line": 54,
+    "code": "class ClipboardController:",
+    "comment": "Class definition"
+  },
+  {
+    "line": 56,
+    "code": "@staticmethod",
+    "comment": "Decorator applied"
+  },
+  {
+    "line": 57,
+    "code": "def get_clipboard() -> CommandResult:",
+    "comment": "Function definition"
+  },
+  {
+    "line": 58,
+    "code": "if not HAS_CLIPBOARD:",
+    "comment": "Negative condition check"
+  },
+  {
+    "line": 59,
+    "code": "return CommandResult.error(",
+    "comment": "Return value"
+  },
+  {
+    "line": 65,
+    "code": "try:",
+    "comment": "Error handling block"
+  },
+  {
+    "line": 68,
+    "code": "return CommandResult.success_text(content)",
+    "comment": "Return value"
+  },
+  {
+    "line": 70,
+    "code": "return CommandResult.error(",
+    "comment": "Return value"
+  },
+  {
+    "line": 75,
+    "code": "except Exception as e:",
+    "comment": "Catch specific exception"
+  },
+  {
+    "line": 76,
+    "code": "return CommandResult.error(",
+    "comment": "Return value"
+  },
+  {
+    "line": 82,
+    "code": "@staticmethod",
+    "comment": "Decorator applied"
+  },
+  {
+    "line": 83,
+    "code": "def get_image() -> CommandResult:",
+    "comment": "Function definition"
+  },
+  {
+    "line": 85,
+    "code": "if not HAS_IMAGE_CLIPBOARD:",
+    "comment": "Negative condition check"
+  },
+  {
+    "line": 86,
+    "code": "return CommandResult.error(",
+    "comment": "Return value"
+  },
+  {
+    "line": 92,
+    "code": "try:",
+    "comment": "Error handling block"
+  },
+  {
+    "line": 96,
+    "code": "if img is None:",
+    "comment": "Null check"
+  },
+  {
+    "line": 97,
+    "code": "return CommandResult.error(",
+    "comment": "Return value"
+  },
+  {
+    "line": 120,
+    "code": "return CommandResult.success_data({",
+    "comment": "Return value"
+  },
+  {
+    "line": 127,
+    "code": "except Exception as e:",
+    "comment": "Catch specific exception"
+  },
+  {
+    "line": 128,
+    "code": "return CommandResult.error(",
+    "comment": "Return value"
+  },
+  {
+    "line": 134,
+    "code": "@staticmethod",
+    "comment": "Decorator applied"
+  },
+  {
+    "line": 135,
+    "code": "def is_available() -> bool:",
+    "comment": "Function definition"
+  },
+  {
+    "line": 136,
+    "code": "return HAS_CLIPBOARD",
+    "comment": "Return value"
+  },
+  {
+    "line": 138,
+    "code": "@staticmethod",
+    "comment": "Decorator applied"
+  },
+  {
+    "line": 139,
+    "code": "def is_image_available() -> bool:",
+    "comment": "Function definition"
+  },
+  {
+    "line": 140,
+    "code": "return HAS_IMAGE_CLIPBOARD",
+    "comment": "Return value"
+  },
+  {
+    "line": 142,
+    "code": "class FileController:",
+    "comment": "Class definition"
+  },
+  {
+    "line": 148,
+    "code": "@staticmethod",
+    "comment": "Decorator applied"
+  },
+  {
+    "line": 149,
+    "code": "def read_file(path: Path) -> CommandResult:",
+    "comment": "Function definition"
+  },
+  {
+    "line": 151,
+    "code": "try:",
+    "comment": "Error handling block"
+  },
+  {
+    "line": 153,
+    "code": "if not path.exists():",
+    "comment": "Negative condition check"
+  },
+  {
+    "line": 154,
+    "code": "return CommandResult.error(",
+    "comment": "Return value"
+  },
+  {
+    "line": 161,
+    "code": "if not path.is_file():",
+    "comment": "Negative condition check"
+  },
+  {
+    "line": 162,
+    "code": "return CommandResult.error(",
+    "comment": "Return value"
+  },
+  {
+    "line": 170,
+    "code": "return FileController.read_image(path)",
+    "comment": "Return value"
+  },
+  {
+    "line": 173,
+    "code": "try:",
+    "comment": "Error handling block"
+  },
+  {
+    "line": 175,
+    "code": "return CommandResult.success_text(content)",
+    "comment": "Return value"
+  },
+  {
+    "line": 176,
+    "code": "except UnicodeDecodeError:",
+    "comment": "Catch specific exception"
+  },
+  {
+    "line": 178,
+    "code": "try:",
+    "comment": "Error handling block"
+  },
+  {
+    "line": 180,
+    "code": "return CommandResult.success_text(content)",
+    "comment": "Return value"
+  },
+  {
+    "line": 181,
+    "code": "except UnicodeDecodeError:",
+    "comment": "Catch specific exception"
+  },
+  {
+    "line": 182,
+    "code": "return CommandResult.error(",
+    "comment": "Return value"
+  },
+  {
+    "line": 188,
+    "code": "except PermissionError:",
+    "comment": "Catch specific exception"
+  },
+  {
+    "line": 189,
+    "code": "return CommandResult.error(",
+    "comment": "Return value"
+  },
+  {
+    "line": 194,
+    "code": "except Exception as e:",
+    "comment": "Catch specific exception"
+  },
+  {
+    "line": 195,
+    "code": "return CommandResult.error(",
+    "comment": "Return value"
+  },
+  {
+    "line": 201,
+    "code": "@staticmethod",
+    "comment": "Decorator applied"
+  },
+  {
+    "line": 202,
+    "code": "def read_image(path: Path) -> CommandResult:",
+    "comment": "Function definition"
+  },
+  {
+    "line": 203,
+    "code": "\"\"\"Read image file and return base64 encoded da...",
+    "comment": "Return value"
+  },
+  {
+    "line": 204,
+    "code": "try:",
+    "comment": "Error handling block"
+  },
+  {
+    "line": 225,
+    "code": "try:",
+    "comment": "Error handling block"
+  },
+  {
+    "line": 226,
+    "code": "from PIL import Image",
+    "comment": "Import module"
+  },
+  {
+    "line": 230,
+    "code": "except:",
+    "comment": "Catch all exceptions"
+  },
+  {
+    "line": 233,
+    "code": "return CommandResult.success_data(result_data)",
+    "comment": "Return value"
+  },
+  {
+    "line": 235,
+    "code": "except Exception as e:",
+    "comment": "Catch specific exception"
+  },
+  {
+    "line": 236,
+    "code": "return CommandResult.error(",
+    "comment": "Return value"
+  },
+  {
+    "line": 242,
+    "code": "@staticmethod",
+    "comment": "Decorator applied"
+  },
+  {
+    "line": 243,
+    "code": "def is_image_file(path: Path) -> bool:",
+    "comment": "Function definition"
+  },
+  {
+    "line": 245,
+    "code": "return path.suffix.lower() in FileController.IM...",
+    "comment": "Return value"
+  },
+  {
+    "line": 247,
+    "code": "@staticmethod",
+    "comment": "Decorator applied"
+  },
+  {
+    "line": 248,
+    "code": "def detect_language(path: Path) -> CommandResult:",
+    "comment": "Function definition"
+  },
+  {
+    "line": 252,
+    "code": "return CommandResult.success_data({",
+    "comment": "Return value"
+  },
+  {
+    "line": 284,
+    "code": "return CommandResult.success_data({\"language\": ...",
+    "comment": "Return value"
+  },
+  {
+    "line": 289,
+    "code": "return CommandResult.success_data({\"language\": ...",
+    "comment": "Return value"
+  },
+  {
+    "line": 291,
+    "code": "return CommandResult.error(",
+    "comment": "Return value"
+  },
+  {
+    "line": 297,
+    "code": "class SessionController:",
+    "comment": "Class definition"
+  },
+  {
+    "line": 299,
+    "code": "def __init__(self, session_dir: Path):",
+    "comment": "Constructor method"
+  },
+  {
+    "line": 301,
+    "code": "self.session_dir.mkdir(exist_ok=True)",
+    "comment": "Create directory"
+  },
+  {
+    "line": 303,
+    "code": "def get_session_path(self, name: str) -> Path:",
+    "comment": "Function definition"
+  },
+  {
+    "line": 304,
+    "code": "return self.session_dir / f\"{name}.json\"",
+    "comment": "Return value"
+  },
+  {
+    "line": 306,
+    "code": "def list_sessions(self) -> List[str]:",
+    "comment": "Function definition"
+  },
+  {
+    "line": 308,
+    "code": "return [f.stem for f in self.session_dir.glob(\"...",
+    "comment": "Iterate over collection"
+  },
+  {
+    "line": 310,
+    "code": "def session_exists(self, name: str) -> bool:",
+    "comment": "Function definition"
+  },
+  {
+    "line": 311,
+    "code": "return self.get_session_path(name).exists()",
+    "comment": "Return value"
+  },
+  {
+    "line": 313,
+    "code": "class CommandController:",
+    "comment": "Class definition"
+  },
+  {
+    "line": 315,
+    "code": "def __init__(self):",
+    "comment": "Constructor method"
+  },
+  {
+    "line": 319,
+    "code": "def register_command(self, name: str, handler: ...",
+    "comment": "Function definition"
+  },
+  {
+    "line": 327,
+    "code": "for alias in aliases:",
+    "comment": "Iterate over collection"
+  },
+  {
+    "line": 330,
+    "code": "def parse_input(self, user_input: str) -> tuple:",
+    "comment": "Function definition"
+  },
+  {
+    "line": 332,
+    "code": "if not user_input.startswith('/'):",
+    "comment": "Negative condition check"
+  },
+  {
+    "line": 333,
+    "code": "return None, user_input",
+    "comment": "Explicit null return"
+  },
+  {
+    "line": 335,
+    "code": "parts = user_input[1:].split(' ', 1)",
+    "comment": "Split string"
+  },
+  {
+    "line": 343,
+    "code": "return command, args",
+    "comment": "Return value"
+  },
+  {
+    "line": 345,
+    "code": "def execute_command(self, command: str, args: s...",
+    "comment": "Function definition"
+  },
+  {
+    "line": 349,
+    "code": "return True",
+    "comment": "Return value"
+  },
+  {
+    "line": 350,
+    "code": "return False",
+    "comment": "Return value"
+  },
+  {
+    "line": 352,
+    "code": "def get_help(self) -> str:",
+    "comment": "Function definition"
+  },
+  {
+    "line": 357,
+    "code": "lines.append(f\"  /{name} - {info['description']}\")",
+    "comment": "Add to list"
+  },
+  {
+    "line": 358,
+    "code": "return \"\\n\".join(lines)",
+    "comment": "Return value"
+  }
+]

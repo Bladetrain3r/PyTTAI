@@ -1,0 +1,132 @@
+[
+  {
+    "line": 6,
+    "code": "from lmchat.core.models import OutputFormat",
+    "comment": "Import module"
+  },
+  {
+    "line": 8,
+    "code": "def create_paste_handler(chat_controller):",
+    "comment": "Function definition"
+  },
+  {
+    "line": 10,
+    "code": "def handle_paste(args: str):",
+    "comment": "Function definition"
+  },
+  {
+    "line": 12,
+    "code": "import os",
+    "comment": "Import module"
+  },
+  {
+    "line": 17,
+    "code": "if not (is_wsl or is_ssh) and chat_controller.c...",
+    "comment": "Negative condition check"
+  },
+  {
+    "line": 18,
+    "code": "try:",
+    "comment": "Error handling block"
+  },
+  {
+    "line": 22,
+    "code": "print(\"Sending clipboard image...\")",
+    "comment": "Debug output"
+  },
+  {
+    "line": 30,
+    "code": "except Exception as e:",
+    "comment": "Catch specific exception"
+  },
+  {
+    "line": 33,
+    "code": "print(f\"Image clipboard error: {e}\")",
+    "comment": "Debug output"
+  },
+  {
+    "line": 39,
+    "code": "if not clipboard_result.success:",
+    "comment": "Negative condition check"
+  },
+  {
+    "line": 40,
+    "code": "if not chat_controller.clipboard.is_available():",
+    "comment": "Negative condition check"
+  },
+  {
+    "line": 41,
+    "code": "print(\"Clipboard not available. Install: pip in...",
+    "comment": "Debug output"
+  },
+  {
+    "line": 43,
+    "code": "print(\"For WSL, also install: sudo apt-get inst...",
+    "comment": "Debug output"
+  },
+  {
+    "line": 45,
+    "code": "print(\"Note: Clipboard access is limited over S...",
+    "comment": "Debug output"
+  },
+  {
+    "line": 47,
+    "code": "print(f\"Clipboard error: {clipboard_result.erro...",
+    "comment": "Debug output"
+  },
+  {
+    "line": 49,
+    "code": "print(\"\\nFor WSL clipboard support:\")",
+    "comment": "Debug output"
+  },
+  {
+    "line": 50,
+    "code": "print(\"  X11: sudo apt-get install xclip\")",
+    "comment": "Debug output"
+  },
+  {
+    "line": 51,
+    "code": "print(\"  Wayland: sudo apt-get install wl-clipb...",
+    "comment": "Debug output"
+  },
+  {
+    "line": 52,
+    "code": "print(\"\\nThen try again.\")",
+    "comment": "Debug output"
+  },
+  {
+    "line": 57,
+    "code": "if not clipboard_content or not clipboard_conte...",
+    "comment": "Negative condition check"
+  },
+  {
+    "line": 58,
+    "code": "print(\"Clipboard is empty\")",
+    "comment": "Debug output"
+  },
+  {
+    "line": 59,
+    "code": "if not (is_wsl or is_ssh) and not chat_controll...",
+    "comment": "Negative condition check"
+  },
+  {
+    "line": 60,
+    "code": "print(\"Note: Image clipboard support requires: ...",
+    "comment": "Debug output"
+  },
+  {
+    "line": 69,
+    "code": "print(\"Sending clipboard content...\")",
+    "comment": "Debug output"
+  },
+  {
+    "line": 72,
+    "code": "return handle_paste",
+    "comment": "Return value"
+  },
+  {
+    "line": 74,
+    "code": "def register_commands(chat_controller):",
+    "comment": "Function definition"
+  }
+]
