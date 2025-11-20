@@ -279,6 +279,100 @@ class OpenAIProvider(LLMProvider):
         except Exception as e:
             print(f"\nUnexpected error calling OpenAI: {type(e).__name__}: {str(e)}")
 
+class XAIProvider(LLMProvider):
+    """xAI Grok provider"""
+    
+    def __init__(self, config: Dict):
+        super().__init__(config)
+        self.name = "xai"
+        self.api_key = config.get("api_key")
+        self.model = config.get("model", "grok-3")
+        self.api_url = "https://api.x.ai/v1/chat/completions"
+        self.timeout = config.get("timeout", 60.0)
+    
+    def test_connection(self) -> bool:
+        if not self.api_key:
+            return False
+        try:
+            with httpx.Client(timeout=5.0) as client:
+                response = client.get(
+                    "https://api.x.ai/v1/models",
+                    headers={"Authorization": f"Bearer {self.api_key}"}
+                )
+                return response.status_code == 200
+        except:
+            return False
+    
+    def get_models(self) -> Optional[List[Dict]]:
+        try:
+            with httpx.Client(timeout=5.0) as client:
+                response = client.get(
+                    "https://api.x.ai/v1/models",
+                    headers={"Authorization": f"Bearer {self.api_key}"}
+                )
+                models = response.json().get("data", [])
+                return models
+        except:
+            # Return common models if API fails
+            return [
+                {"id": "grok-3", "name": "Grok Beta"},
+                {"id": "grok-vision-beta", "name": "Grok Vision Beta"}
+            ]
+    
+    def stream_completion(self, messages: List[Dict], **kwargs) -> Generator[str, None, None]:
+        """Stream completion from xAI"""
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json"
+        }
+        
+        data = {
+            "model": self.model,
+            "messages": messages,
+            "max_tokens": kwargs.get("max_tokens", self.config.get("max_tokens", 1024)),
+            "temperature": kwargs.get("temperature", self.config.get("temperature", 0.7)),
+            "stream": True
+        }
+        
+        try:
+            with httpx.Client(timeout=self.timeout) as client:
+                response = client.post(
+                    self.api_url,
+                    headers=headers,
+                    json=data,
+                    timeout=self.timeout
+                )
+                
+                if response.status_code != 200:
+                    error_data = response.json()
+                    error_msg = error_data.get("error", {}).get("message", "Unknown error")
+                    print(f"\nxAI API Error: {error_msg}")
+                    return
+                
+                for line in response.iter_lines():
+                    if not line:
+                        continue
+                        
+                    if line.startswith("data: "):
+                        data_str = line[6:]
+                        if data_str == "[DONE]":
+                            break
+                        
+                        try:
+                            chunk = json.loads(data_str)
+                            if "choices" in chunk and len(chunk["choices"]) > 0:
+                                delta = chunk["choices"][0].get("delta", {})
+                                if "content" in delta:
+                                    yield delta["content"]
+                        except json.JSONDecodeError:
+                            pass
+                            
+        except httpx.ConnectError:
+            print("\nError: Cannot connect to xAI API. Check your internet connection.")
+        except httpx.TimeoutException:
+            print("\nError: Request to xAI timed out.")
+        except Exception as e:
+            print(f"\nUnexpected error calling xAI: {type(e).__name__}: {str(e)}")
 
 class ProviderManager:
     """Manages LLM providers and switching between them"""
@@ -288,6 +382,7 @@ class ProviderManager:
         "lmstudio": LMStudioProvider,
         "claude": ClaudeProvider,
         "openai": OpenAIProvider,
+        "xai": XAIProvider
     }
 
     PROVIDERS_FUTURE = {
