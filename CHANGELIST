@@ -1,0 +1,41 @@
+## v0.2.2 - Scripting Is Go
+[x] Exit commands changed to slash commands
+[x] Non-interactive launch parameter added (scripting!)
+[x] Startup outputs redirected to stderr (scripting)
+
+## v0.2.3 - Tighten Things Up
+[ ] All controller outputs as CommandResults
+[X] Dockerfile entrypoint improvements and better startup sample command.
+[ ] Improve error handling and debug output
+    [ ] Specific pain points: No failure if the model doesn't load, just silently fails
+    [ ] Specific pain points: Exceeding model context length fails silently if not allowed.
+[x] Extend stderr outputs for cleaner noninteractive mode
+[x] Skip tests launch flag
+
+## v0.2.4 - Implicit to Explicit
+[ ] Implement the first and core operator, :ai
+[ ] (Bonus) Implement Kokoro API provider to take in text and playback the audio stream
+    - For those long outputs or when you want a codebase explained in the background
+
+## v0.2.5 - File Ops Begin
+[ ] /ls command
+[ ] Multiple file handling
+[ ] Logging Improvements
+
+## v0.2.6 - File Ops Grow
+[ ] /find command
+[ ] Pre-emptively mitigate use of .. and other traversal vulnerabilities. Don't over-rely on the container.
+
+## v0.3.0 - Initial Operators
+[ ] :r operator for the ability to write files
+[ ] :i operator supplementing /file command
+[ ] :s and :ss success and failure operators
+[ ] :: operator to act as a statement terminator
+[ ] Get good parsing patterns and predictable behaviors early. This is a wish.
+- Draft example command
+```ptt
+/file roadmap.txt :ai claude Add the green button class from phase 1 to the stylesheet, only output the code. :r styles.css :s \
+/persist styles.css \
+:ss /print "Ruh-Roh!"
+```
+[ ] Essential redirect and pipe operators

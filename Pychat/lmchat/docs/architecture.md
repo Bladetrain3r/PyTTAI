@@ -38,7 +38,7 @@ Protected system commands that cannot be overridden:
 - `/model` - List available models
 - `/alias [name]` - Manage user aliases
 - `/session [save|load|list]` - Manage conversations
-- `/mux [add|start|stop]` - Multi-model control
+- `/mux [add|start|stop]` - Multi-model control (wip)
 - `/paste [prompt]` - Send clipboard content
 
 ### Aliases (User Space)
@@ -55,6 +55,9 @@ Colon-prefixed operators for chaining operations:
 - `:rr` - Append to file
 - `:c` - Read file as command input
 - `:ai` - Pipe to AI analysis
+
+### Queue Commands
+- Shift + Enter to push to queue without execution
 
 ## Data Flow
 
