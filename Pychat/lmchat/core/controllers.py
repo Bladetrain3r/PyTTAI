@@ -9,8 +9,6 @@ import base64
 from typing import Optional, Callable, Generator, Dict, List
 from pathlib import Path
 
-import httpx
-
 from .models import CommandResult, OutputFormat
 
 # Optional clipboard support
@@ -29,27 +27,6 @@ except ImportError:
     HAS_IMAGE_CLIPBOARD = False
 
 # APIController has been replaced by the provider system in providers.py
-
-class AudioController:
-    """Handles TTS generation and playback"""
-    @staticmethod
-    def generate_tts(text: str, provider: str = "default") -> CommandResult:
-        """Generate TTS audio from text"""
-        if not text.strip():
-            return CommandResult.error(
-                "No text provided for TTS generation",
-                code="EMPTY_TEXT",
-                suggestion="Provide some text to convert to speech"
-            )
-        try:
-           print("Placeholder")
-           return CommandResult.success_text("Audio generated successfully")
-        except OutputFormatError as e:
-            return CommandResult.error(
-                f"Output format error: {str(e)}",
-                code="OUTPUT_FORMAT_ERROR",
-                suggestion="Check the output format and try again"
-            )
 
 class ClipboardController:
     """Handles clipboard operations"""
@@ -240,6 +217,38 @@ class FileController:
             )
     
     @staticmethod
+    def compress_image(base64_data: str, max_dimension: int = 1568, quality: int = 85) -> CommandResult:
+        """Downscale and re-encode an image to fit provider size limits"""
+        if not HAS_IMAGE_CLIPBOARD:
+            return CommandResult.error(
+                "Image resizing not available",
+                code="NO_PILLOW",
+                suggestion="Install Pillow: pip install Pillow"
+            )
+        try:
+            from PIL import Image
+            raw = base64.b64decode(base64_data)
+            img = Image.open(io.BytesIO(raw))
+            if max(img.size) > max_dimension:
+                img.thumbnail((max_dimension, max_dimension))
+            if img.mode != 'RGB':
+                img = img.convert('RGB')
+            buffer = io.BytesIO()
+            img.save(buffer, format='JPEG', quality=quality)
+            return CommandResult.success_data({
+                "data": base64.b64encode(buffer.getvalue()).decode('utf-8'),
+                "format": "jpeg",
+                "width": img.width,
+                "height": img.height
+            })
+        except Exception as e:
+            return CommandResult.error(
+                f"Failed to compress image: {str(e)}",
+                code="IMAGE_COMPRESS_ERROR",
+                suggestion="Check that the file is a valid image"
+            )
+
+    @staticmethod
     def is_image_file(path: Path) -> bool:
         """Check if file is an image based on extension"""
         return path.suffix.lower() in FileController.IMAGE_EXTENSIONS
@@ -342,12 +351,15 @@ class CommandController:
         
         return command, args
     
-    def execute_command(self, command: str, args: str) -> bool:
-        """Execute a command if it exists"""
+    def execute_command(self, command: str, args: str) -> tuple:
+        """Execute a command if it exists.
+
+        Returns (handled, result) - result is the handler's return value,
+        which signals session exit when it is False.
+        """
         if command in self.commands:
-            self.commands[command]["handler"](args)
-            return True
-        return False
+            return True, self.commands[command]["handler"](args)
+        return False, None
     
     def get_help(self) -> str:
         """Get help text for all commands"""

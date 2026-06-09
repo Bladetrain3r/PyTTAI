@@ -1,11 +1,15 @@
-# Pychat_Experimental - Requirements
-# LM Studio Chat Client Dependencies
+# PyTTAI - Requirements
 
-# Core HTTP client for API communication
-httpx>=0.25.0
+# Official provider SDKs
+anthropic>=0.40.0
+openai>=1.60.0
+google-genai>=1.0.0
 
 # Clipboard operations (optional but recommended)
 pyperclip>=1.8.2
+
+# Image clipboard / dimensions (optional)
+# Pillow>=10.0.0
 
 # Development dependencies (uncomment for development)
 # pytest>=7.0.0

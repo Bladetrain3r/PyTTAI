@@ -28,14 +28,20 @@ It is meant to be extensible, modular and easily integrated into automation with
 However it is not Cursor and will not by itself rewrite an entire codebase or build one from scratch off a single prompt.
 
 ## Dependencies
-For a default config without a cloud provider (or Claude provider aha) you will need:
+For a default config without a cloud provider you will need:
 ### Prerequisites
 - Python 3.10+
 - LM Studio (or compatible OpenAI API server, such as Ollama)
 
 #### Python Modules
-- httpx>=0.25.0
-- pyperclip>=1.8.2
+Providers are built on the official SDKs:
+- anthropic>=0.40.0 (Claude)
+- openai>=1.60.0 (ChatGPT, plus LM Studio/Ollama/xAI via OpenAI-compatible endpoints)
+- google-genai>=1.0.0 (Gemini)
+- pyperclip>=1.8.2 (clipboard)
+
+API keys can be set per provider in config, or via the conventional environment
+variables: `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `XAI_API_KEY`, `GEMINI_API_KEY`.
 
 ## Setup
 Create a config.json file in ~/.pyttai or %USERPROFILE%\.pyttai
@@ -52,17 +58,27 @@ Ollama is also supported but you will need to adjust your port.
   "providers": {
     "claude": {
       "type": "claude",
-      "api_key": "skskskskskAA",
-      "model": "claude-3-5-sonnet-20241022",
-      "max_tokens": 1024,
-      "temperature": 0.5
+      "api_key": "keyhere-or-set-ANTHROPIC_API_KEY",
+      "model": "claude-opus-4-8",
+      "max_tokens": 4096
     },
-    "gpt4": {
+    "gpt": {
       "type": "openai",
-      "api_key": "gggggA",
-      "model": "gpt-4.1-nano",
-      "max_tokens": 1024,
-      "temperature": 0.5
+      "api_key": "keyhere-or-set-OPENAI_API_KEY",
+      "model": "gpt-5",
+      "max_tokens": 4096
+    },
+    "grok": {
+      "type": "xai",
+      "api_key": "keyhere-or-set-XAI_API_KEY",
+      "model": "grok-4",
+      "max_tokens": 4096
+    },
+    "gemini": {
+      "type": "gemini",
+      "api_key": "keyhere-or-set-GEMINI_API_KEY",
+      "model": "gemini-2.5-flash",
+      "max_tokens": 4096
     },
     "local": {
       "type": "lmstudio",
@@ -70,10 +86,10 @@ Ollama is also supported but you will need to adjust your port.
       "model": "gemma-3-4b-it-qat",
       "timeout": 60.0
     },
-    "tinyllama": {
-      "type": "lmstudio",
-      "base_url": "http://localhost:1234",
-      "model": "llama-3.2-1b-instruct",
+    "ollama": {
+      "type": "ollama",
+      "base_url": "http://localhost:11434",
+      "model": "llama3.2",
       "timeout": 120.0
     }
   }
