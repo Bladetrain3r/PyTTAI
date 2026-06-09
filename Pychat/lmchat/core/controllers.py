@@ -9,8 +9,6 @@ import base64
 from typing import Optional, Callable, Generator, Dict, List
 from pathlib import Path
 
-import httpx
-
 from .models import CommandResult, OutputFormat
 
 # Optional clipboard support

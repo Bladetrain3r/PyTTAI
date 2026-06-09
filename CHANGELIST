@@ -4,6 +4,10 @@
 [x] Startup outputs redirected to stderr (scripting)
 
 ## v0.2.3 - Tighten Things Up
+[x] Provider modernisation: official SDKs (anthropic, openai, google-genai)
+    - Claude/OpenAI/xAI/Gemini providers, plus LM Studio/Ollama via OpenAI-compatible endpoints
+    - API keys fall back to environment variables (ANTHROPIC_API_KEY etc.)
+    - Live model listing for all providers, current default model IDs
 [ ] All controller outputs as CommandResults
 [X] Dockerfile entrypoint improvements and better startup sample command.
 [ ] Improve error handling and debug output
