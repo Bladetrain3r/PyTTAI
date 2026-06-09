@@ -8,7 +8,9 @@
     - Claude/OpenAI/xAI/Gemini providers, plus LM Studio/Ollama via OpenAI-compatible endpoints
     - API keys fall back to environment variables (ANTHROPIC_API_KEY etc.)
     - Live model listing for all providers, current default model IDs
-[ ] All controller outputs as CommandResults
+[x] All controller outputs as CommandResults
+    - Command handlers return CommandResults rendered by one renderer
+    - Success content to stdout, errors (with suggestions) to stderr
 [X] Dockerfile entrypoint improvements and better startup sample command.
 [x] Improve error handling and debug output
     [x] Provider/API errors surface with provider name instead of failing silently
@@ -22,9 +24,17 @@
 [x] Skip tests launch flag
 
 ## v0.2.4 - Implicit to Explicit
+See docs/slash-colon-spec.md for the draft operator grammar and open questions.
+[ ] Track tokens in and out per turn to a log file. Check current session with /tokenuse (moving forward from memory management)
+    - Consider csv for easy timeseries
+[ ] Explicitly specify reasoning parameter in config - optional as not all models use CoT
 [ ] Implement the first and core operator, :ai
-[ ] (Bonus) Implement Kokoro API provider to take in text and playback the audio stream
+[ ] Convert /file to equivalent of cat unless followed with :ai - if nontext filetype just return MIME data.
+[ ] (Bonus) Implement tts_provider to take in text and playback the audio stream. Basic local and a few cloud providers.
     - For those long outputs or when you want a codebase explained in the background
+    - :tts operator I guess
+    - Config in same location and format but standalone (tts.conf)
+    - Lessee whisper, fastapi, and cloud TTS (Google, Grok possibly, Elevenlabs)
 
 ## v0.2.5 - File Ops Begin
 [ ] /ls command
@@ -41,10 +51,19 @@
 [ ] :s and :ss success and failure operators
 [ ] :: operator to act as a statement terminator
 [ ] Get good parsing patterns and predictable behaviors early. This is a wish.
+[ ] Essential redirect and pipe operators
+
+### v0.3.0 Decision Notes
 - Draft example command
 ```ptt
 /file roadmap.txt :ai claude Add the green button class from phase 1 to the stylesheet, only output the code. :r styles.css :s \
-/persist styles.css \
-:ss /print "Ruh-Roh!"
+/persist styles.css :ss /print "Ruh-Roh!"
 ```
-[ ] Essential redirect and pipe operators
+#### Thoughts on syntax:
+- /command must be on newlines always.
+- Commands are always command -> input -> params
+- :command / operators only use the preceding output as input
+- No globbing or loops to start with - don't want variables or list iteration or arrays or all the BASH boggins just yet.
+- That kind of scripting can be done via combination of actual shell and the -c flag.
+
+## v0.3.1 - Probably Polish

@@ -3,11 +3,12 @@
 Core ChatController - Orchestrates all components
 """
 
+import json
 import sys
 from pathlib import Path
 from typing import Optional
 
-from .models import Conversation, Config, CommandResult
+from .models import Conversation, Config, CommandResult, OutputFormat
 from .controllers import (
     ClipboardController, 
     FileController,
@@ -107,11 +108,16 @@ class ChatController:
             self.providers.set_current(active_provider)
     
     def _register_builtin_commands(self):
-        """Register core commands"""
+        """Register core commands.
+
+        Handlers return a CommandResult (rendered by render_result), None for
+        pure side effects, or False as the session-exit signal. Never return
+        a raw bool from send_message/send_image - False would exit.
+        """
         # Help command
         self.commands.register_command(
             "help",
-            lambda args: print(self.commands.get_help()),
+            lambda args: CommandResult.success_text(self.commands.get_help()),
             "Show available commands",
             aliases=["h", "?"]
         )
@@ -155,94 +161,116 @@ class ChatController:
             aliases=["quit", "bye"]
         )
     
-    def _handle_provider_command(self, args: str):
+    def _handle_provider_command(self, args: str) -> CommandResult:
         """Handle provider management commands"""
         if not args:
-            # List providers
             providers = self.providers.list_providers()
-            print("\nConfigured providers:")
-            for name, info in providers.items():
-                print(f"  {name}: {info}")
-        else:
-            parts = args.split(maxsplit=1)
-            subcommand = parts[0]
-            
-            if subcommand == "switch" and len(parts) > 1:
-                result = self.providers.set_current(parts[1])
-                print(result.error if not result.success else result.content)
-            elif subcommand == "add" and len(parts) > 1:
-                # Parse provider config from args
-                # Format: add name type=claude api_key=xxx
-                print("Use /config providers.name.key=value to add providers")
-            else:
-                print("Usage: /provider [switch NAME]")
-    
-    def _handle_model_command(self, args: str):
+            lines = ["Configured providers:"]
+            lines.extend(f"  {name}: {info}" for name, info in providers.items())
+            return CommandResult.success_text("\n".join(lines))
+
+        parts = args.split(maxsplit=1)
+        subcommand = parts[0]
+
+        if subcommand == "switch" and len(parts) > 1:
+            return self.providers.set_current(parts[1])
+        if subcommand == "add":
+            return CommandResult.error(
+                "Adding providers at runtime is not supported yet",
+                code="NOT_IMPLEMENTED",
+                suggestion="Use /config providers.NAME.key=value to add providers"
+            )
+        return CommandResult.error(
+            f"Unknown provider subcommand: {subcommand}",
+            code="USAGE",
+            suggestion="Usage: /provider [switch NAME]"
+        )
+
+    def _handle_model_command(self, args: str) -> CommandResult:
         """Handle model command"""
         provider = self.providers.get_current()
         if not provider:
-            print("No provider configured")
-            return
-        
+            return CommandResult.error(
+                "No provider configured",
+                code="NO_PROVIDER",
+                suggestion="Check your config and /provider list"
+            )
+
         models = provider.get_models()
-        if models:
-            print(f"\nAvailable models ({provider.name}):")
-            for model in models:
-                print(f"  - {model['id']}")
-        else:
-            print("Could not fetch model information")
-    
-    def _handle_config_command(self, args: str):
+        if not models:
+            return CommandResult.error(
+                f"Could not fetch model information from {provider.name}",
+                code="MODELS_UNAVAILABLE",
+                suggestion="Check the provider connection and API key"
+            )
+        lines = [f"Available models ({provider.name}):"]
+        lines.extend(f"  - {model['id']}" for model in models)
+        return CommandResult.success_text("\n".join(lines))
+
+    def _handle_config_command(self, args: str) -> CommandResult:
         """Handle config command"""
         if not args:
-            # Show current config
-            print("\nCurrent configuration:")
+            lines = ["Current configuration:"]
             for key, value in self.config.data.items():
                 if key == "providers" and isinstance(value, dict):
-                    print(f"  providers:")
+                    lines.append("  providers:")
                     for pname, pconfig in value.items():
-                        print(f"    {pname}: {pconfig.get('type', 'unknown')}")
+                        lines.append(f"    {pname}: {pconfig.get('type', 'unknown')}")
                 else:
-                    print(f"  {key}: {value}")
+                    lines.append(f"  {key}: {value}")
+            return CommandResult.success_text("\n".join(lines))
+
+        if '=' not in args:
+            return CommandResult.error(
+                "Missing value",
+                code="USAGE",
+                suggestion="Usage: /config key=value"
+            )
+
+        key, value = args.split('=', 1)
+        key = key.strip()
+        value = value.strip()
+
+        # Try to parse value as appropriate type
+        if value.lower() in ('true', 'false'):
+            value = value.lower() == 'true'
+        elif value.isdigit():
+            value = int(value)
+        elif '.' in value and value.replace('.', '', 1).isdigit():
+            value = float(value)
+
+        # Handle nested keys (e.g., providers.claude.api_key)
+        if isinstance(key, str) and '.' in key:
+            keys = key.split('.')
+            current = self.config.data
+            for k in keys[:-1]:
+                if k not in current:
+                    current[k] = {}
+                current = current[k]
+            current[keys[-1]] = value
+            self.config.save()
         else:
-            # Parse key=value
-            if '=' in args:
-                key, value = args.split('=', 1)
-                key = key.strip()
-                value = value.strip()
-                
-                # Try to parse value as appropriate type
-                try:
-                    if value.lower() in ('true', 'false'):
-                        value = value.lower() == 'true'
-                    elif value.isdigit():
-                        value = int(value)
-                    elif '.' in value and value.replace('.', '').isdigit():
-                        value = float(value)
-                except:
-                    pass
-                
-                # Handle nested keys (e.g., providers.claude.api_key)
-                if '.' in key:
-                    keys = key.split('.')
-                    current = self.config.data
-                    for k in keys[:-1]:
-                        if k not in current:
-                            current[k] = {}
-                        current = current[k]
-                    current[keys[-1]] = value
-                else:
-                    self.config.set(key, value)
-                
-                self.config.save()
-                print(f"Set {key} = {value}")
-            else:
-                print("Usage: /config key=value")
-    
-    def _clear_conversation(self):
+            self.config.set(key, value)
+
+        return CommandResult.success_text(f"Set {key} = {value}")
+
+    def _clear_conversation(self) -> CommandResult:
         """Clear conversation history"""
         self.conversation.clear()
-        print("Conversation cleared.")
+        return CommandResult.success_text("Conversation cleared.")
+
+    @staticmethod
+    def render_result(result: CommandResult):
+        """Render a CommandResult: content to stdout, errors to stderr"""
+        if result.success:
+            if result.format == OutputFormat.DATA:
+                print(json.dumps(result.content, indent=2, default=str))
+            elif result.content:
+                print(result.content)
+        else:
+            print(f"Error: {result.error}", file=sys.stderr)
+            if result.suggestion:
+                print(result.suggestion, file=sys.stderr)
     
     def test_connection(self) -> bool:
         """Test current provider connection"""
@@ -360,7 +388,7 @@ class ChatController:
 
         # Check for built-in text commands
         if user_input.lower() == 'clear':
-            self._clear_conversation()
+            self.render_result(self._clear_conversation())
             return True
 
         # Check for slash commands
@@ -368,10 +396,14 @@ class ChatController:
         if command:
             handled, result = self.commands.execute_command(command, args)
             if not handled:
-                print(f"Unknown command: /{command} (use /help)")
+                print(f"Unknown command: /{command} (use /help)", file=sys.stderr)
                 return True
             # A handler returning False (e.g. /exit) ends the session
-            return result is not False
+            if result is False:
+                return False
+            if isinstance(result, CommandResult):
+                self.render_result(result)
+            return True
 
         # Regular message
         self.send_message(user_input)
