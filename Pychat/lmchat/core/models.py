@@ -107,14 +107,39 @@ class Conversation:
     def add_message(self, role: str, content: str):
         self.messages.append(Message(role, content))
     
+    @staticmethod
+    def _has_image(content) -> bool:
+        return isinstance(content, list) and any(
+            isinstance(p, dict) and p.get("type") == "image_url" for p in content
+        )
+
     def get_messages_for_api(self, include_system: bool = True, max_messages: Optional[int] = None) -> List[Dict]:
-        """Get messages formatted for API calls"""
+        """Get messages formatted for API calls.
+
+        Only the most recent image-bearing message keeps its image payload;
+        older images are replaced with a text placeholder so large base64
+        blobs aren't re-sent (and re-billed) on every subsequent turn.
+        """
         messages = self.messages
         if max_messages:
             messages = messages[-max_messages:]
-        
-        # Return just role and content for API
-        return [{"role": msg.role, "content": msg.content} for msg in messages]
+
+        last_image_idx = None
+        for i, msg in enumerate(messages):
+            if self._has_image(msg.content):
+                last_image_idx = i
+
+        result = []
+        for i, msg in enumerate(messages):
+            content = msg.content
+            if self._has_image(content) and i != last_image_idx:
+                content = [
+                    p if p.get("type") != "image_url"
+                    else {"type": "text", "text": "[image omitted from history]"}
+                    for p in content
+                ]
+            result.append({"role": msg.role, "content": content})
+        return result
     
     def clear(self):
         self.messages = []
@@ -175,7 +200,7 @@ class Config:
         return {
             "base_url": "http://localhost:1234",
             "model": "local-model",
-            "max_tokens": 1024,
+            "max_tokens": 4096,
             "temperature": 0.7,
             "system_prompt": "You are a helpful assistant.",
             "stream": True,

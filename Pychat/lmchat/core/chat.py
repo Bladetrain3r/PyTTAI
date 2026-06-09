@@ -14,7 +14,7 @@ from .controllers import (
     SessionController,
     CommandController
 )
-from .providers import ProviderManager, LMStudioProvider, ClaudeProvider
+from .providers import ProviderManager
 
 class ChatController:
     """Main controller that orchestrates all chat functionality"""
@@ -147,10 +147,10 @@ class ChatController:
             "Show or set configuration"
         )
         
-        # Exit commands
+        # Exit commands - returning False from a handler ends the session
         self.commands.register_command(
             "exit",
-            lambda args: exit(0),  # Return False to exit
+            lambda args: False,
             "Exit the application",
             aliases=["quit", "bye"]
         )
@@ -249,63 +249,94 @@ class ChatController:
         provider = self.providers.get_current()
         return provider.test_connection() if provider else False
     
+    # Most providers cap images around 10MB of base64; downscale before that
+    IMAGE_COMPRESS_THRESHOLD = 5_000_000
+    IMAGE_HARD_LIMIT = 10_000_000
+
+    def _stream_and_record(self) -> bool:
+        """Stream a response for the current conversation and record it.
+
+        On failure with no output, the just-added user message is removed so
+        a bad turn (e.g. rejected payload) isn't re-sent on every later turn.
+        """
+        provider = self.providers.get_current()
+
+        messages = []
+        system_prompt = self.config.get("system_prompt")
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        messages.extend(self.conversation.get_messages_for_api(
+            max_messages=self.config.get("max_conversation_length", 100)
+        ))
+
+        print(f"\n{provider.name.title()}: ", end="", flush=True)
+        assistant_response = ""
+
+        try:
+            for chunk in provider.stream_completion(messages):
+                print(chunk, end="", flush=True)
+                assistant_response += chunk
+            print()  # New line
+
+            if assistant_response:
+                self.conversation.add_message("assistant", assistant_response)
+                return True
+
+            print(f"Warning: empty response from {provider.name}. "
+                  "The model may have failed to load or hit its context limit.")
+            self.conversation.messages.pop()
+            return False
+
+        except Exception as e:
+            print(f"\n[{provider.name} error] {e}")
+            if assistant_response:
+                # Keep the partial exchange; the turn did produce content
+                self.conversation.add_message("assistant", assistant_response)
+            else:
+                # Drop the failed user turn so the error doesn't repeat forever
+                self.conversation.messages.pop()
+                print("(message removed from history - rephrase or fix and retry)")
+            return False
+
     def send_message(self, message: str) -> bool:
         """Send a message and handle the response"""
         provider = self.providers.get_current()
         if not provider:
             print("No LLM provider configured")
             return False
-        
-        # Add user message
+
         self.conversation.add_message("user", message)
-        
-        # Build messages for API
-        messages = []
-        
-        # Add system prompt if configured
-        system_prompt = self.config.get("system_prompt")
-        if system_prompt:
-            messages.append({"role": "system", "content": system_prompt})
-        
-        # Add conversation messages
-        messages.extend(self.conversation.get_messages_for_api(
-            max_messages=self.config.get("max_conversation_length", 100)
-        ))
-        
-        # Stream response
-        print(f"\n{provider.name.title()}: ", end="", flush=True)
-        assistant_response = ""
-        
-        try:
-            for chunk in provider.stream_completion(messages):
-                print(chunk, end="", flush=True)
-                assistant_response += chunk
-            
-            print()  # New line
-            
-            # Add assistant response to conversation
-            if assistant_response:
-                self.conversation.add_message("assistant", assistant_response)
-            
-            return True
-            
-        except Exception as e:
-            print(f"\nError: {e}")
-            return False
-    
+        return self._stream_and_record()
+
     def send_image(self, text: str, image_data: str, image_format: str) -> bool:
         """Send a message with an image to the vision model"""
         provider = self.providers.get_current()
         if not provider:
             print("No LLM provider configured")
             return False
-        
+
         # Check if current provider supports vision
         if hasattr(provider, 'supports_vision') and not provider.supports_vision():
             print("Current model doesn't support images. Switch to a vision model.")
             return False
-        
-        # Create message with image
+
+        # Downscale oversized images instead of letting the provider reject them
+        if len(image_data) > self.IMAGE_COMPRESS_THRESHOLD:
+            result = self.file.compress_image(image_data)
+            if result.success:
+                info = result.content
+                print(f"(image downscaled to {info['width']}x{info['height']} "
+                      f"to fit provider size limits)")
+                image_data = info["data"]
+                image_format = info["format"]
+            elif len(image_data) > self.IMAGE_HARD_LIMIT:
+                print(f"Image too large to send ({len(image_data) // 1024} KB as base64, "
+                      f"limit ~{self.IMAGE_HARD_LIMIT // 1024} KB).")
+                print(f"Could not resize: {result.error}")
+                if result.suggestion:
+                    print(result.suggestion)
+                return False
+
         message_content = [
             {
                 "type": "text",
@@ -318,63 +349,30 @@ class ChatController:
                 }
             }
         ]
-        
-        # Add user message with image
+
         self.conversation.add_message("user", message_content)
-        
-        # Build messages for API
-        messages = []
-        
-        # Add system prompt if configured
-        system_prompt = self.config.get("system_prompt")
-        if system_prompt:
-            messages.append({"role": "system", "content": system_prompt})
-        
-        # Add conversation messages
-        messages.extend(self.conversation.get_messages_for_api(
-            max_messages=self.config.get("max_conversation_length", 100)
-        ))
-        
-        # Stream response
-        print(f"\n{provider.name.title()}: ", end="", flush=True)
-        assistant_response = ""
-        
-        try:
-            for chunk in provider.stream_completion(messages):
-                print(chunk, end="", flush=True)
-                assistant_response += chunk
-            
-            print()  # New line
-            
-            # Add assistant response to conversation
-            if assistant_response:
-                self.conversation.add_message("assistant", assistant_response)
-            
-            return True
-            
-        except Exception as e:
-            print(f"\nError: {e}")
-            return False
-    
+        return self._stream_and_record()
+
     def process_input(self, user_input: str) -> bool:
         """Process user input and return True if should continue"""
         if not user_input.strip():
             return True
-        
-        # Note: Exit commands are handled as slash commands below
-        
+
         # Check for built-in text commands
         if user_input.lower() == 'clear':
             self._clear_conversation()
             return True
-        
+
         # Check for slash commands
         command, args = self.commands.parse_input(user_input)
         if command:
-            if not self.commands.execute_command(command, args):
+            handled, result = self.commands.execute_command(command, args)
+            if not handled:
                 print(f"Unknown command: /{command} (use /help)")
-            return True
-        
+                return True
+            # A handler returning False (e.g. /exit) ends the session
+            return result is not False
+
         # Regular message
         self.send_message(user_input)
         return True

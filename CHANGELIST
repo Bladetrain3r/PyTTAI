@@ -10,9 +10,14 @@
     - Live model listing for all providers, current default model IDs
 [ ] All controller outputs as CommandResults
 [X] Dockerfile entrypoint improvements and better startup sample command.
-[ ] Improve error handling and debug output
-    [ ] Specific pain points: No failure if the model doesn't load, just silently fails
-    [ ] Specific pain points: Exceeding model context length fails silently if not allowed.
+[x] Improve error handling and debug output
+    [x] Provider/API errors surface with provider name instead of failing silently
+    [x] Empty responses (model not loaded, context exceeded) now warn explicitly
+    [x] Failed turns are removed from history so errors don't repeat every turn
+[x] Oversized images auto-downscaled before send; older images replaced with
+    placeholders in API payloads to avoid re-sending large base64 blobs
+[x] /exit works through the normal command flow (handlers return False to quit)
+[x] Retired packethandler.py and dead AudioController
 [x] Extend stderr outputs for cleaner noninteractive mode
 [x] Skip tests launch flag
 
