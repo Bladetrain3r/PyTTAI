@@ -99,7 +99,8 @@ segment; `:ss` after a success does not run its segment.
 can't distinguish a provider name from the first word of the prompt
 without consulting runtime config - and "adding a provider named `add`
 changes how scripts parse" is a footgun. The `@` makes provider
-selection syntactic. By extension `:tts@elevenlabs` etc. later.
+selection syntactic. By extension, future media operators inherit it
+(`:stt@whisper` etc.).
 
 ### v0.3.0 - composition
 
@@ -168,10 +169,10 @@ Python-style list:
 
 ## 5. OPEN questions
 
-1. **`::` statement terminator.** With statements-are-lines plus `\`
-   continuation, `::` only matters if we want multiple statements on
-   one line. Recommendation: drop it from v0.3.0 scope; reserve the
-   token. Decide before parser work begins.
+1. **`::` statement terminator.** ~~Multiple statements on one line?~~
+   **RESOLVED: dropped.** Statements-are-lines plus `\` continuation
+   covers everything. The `::` token stays **reserved** (parse error,
+   not valid text) in case a use ever materializes.
 2. **Result format through pipes.** `:ai` receives the preceding
    CommandResult - as what? Proposal: TEXT results pass content
    verbatim; DATA results pass pretty-printed JSON; a future `:str`
@@ -181,10 +182,12 @@ Python-style list:
    design above: history-coupling has its own syntax (the trailing-
    prompt chat form), so pipeline `:ai` is **stateless** - it neither
    reads nor writes conversation history. No flag needed.
-4. **`:ai@provider` connection lifetime.** Transient switch implies the
-   named provider must already be configured and connected at startup.
-   Lazy-connect on first use is nicer but complicates failure handling
-   mid-pipeline.
+4. **`:ai@provider` connection lifetime.** **RESOLVED: lazy.** Named
+   providers are not connection-tested at startup (saves test calls);
+   the client connects at call time. If the provider/model is
+   unavailable when the segment runs, the segment **fails strictly**
+   like any other failure - it short-circuits to `:ss` or aborts the
+   statement. No retries, no fallback provider.
 
 ## 6. Non-goals (DECIDED)
 

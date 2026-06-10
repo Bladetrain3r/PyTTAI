@@ -61,8 +61,6 @@ The pivot release: AI use becomes operator-driven.
 - `/file` three-form behavior: bare = cat, trailing prompt =
   chat-coupled turn (permanent, full history, content not re-echoed),
   `:ai` = stateless pipeline. Same pattern for similar commands.
-- (Bonus, only if core lands early) TTS provider + `:tts` operator,
-  standalone tts.conf
 
 ### v0.2.5 - File Ops Begin
 - `/ls` with glob support
@@ -93,6 +91,13 @@ Pure-Python, trivially structured, operator-friendly text helpers only:
 
 These earn their place because they operate on CommandResult content
 in-pipeline without shelling out. Anything more is the shell's job.
+
+### v0.4-0.5 candidate - Speech to Text
+TTS is dropped (was a 0.2.4 bonus; cut for focus). STT is the more
+useful direction: generate transcripts from audio files, or feed a
+meeting recording into the conversation for discussion. Provider-style
+config like the LLM providers (local whisper + cloud options), likely
+`:stt@provider` operator form. Plan properly when 0.3.x stabilizes.
 
 ## Parked - Needs Its Own Planning Before Any Build
 

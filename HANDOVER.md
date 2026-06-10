@@ -53,17 +53,15 @@ spec's OPEN questions before v0.2.4 work begins.
 
 ## Pending decisions (owner, after dogfooding)
 
-The spec's OPEN questions, plus assistant recommendations already given:
-1. Drop `::` terminator? (recommended: yes, reserve the token)
-2. DATA results through pipes - format?
-3. ~~Pipeline `:ai` history coupling~~ RESOLVED: stateless. The
-   trailing-prompt form of slash commands is the permanent
-   chat-coupled path (see spec "Command invocation forms").
-4. Lazy vs eager connect for `:ai@provider`
+Spec OPEN questions: only **q2 (DATA results through pipes)** remains.
+Resolved: q1 `::` dropped (token reserved); q3 pipeline `:ai` stateless
+(trailing-prompt form is the permanent chat-coupled path); q4 lazy
+connect for `:ai@provider`, strict fail at call time.
 Also decided: `:ai@provider` syntax, statement-vs-chat line
 classification, /file three forms (bare=cat / prompt=chat-coupled /
 :ai=pipeline), list input via ast.literal_eval, strict-unless-
-`file_skip_missing` failure semantics.
+`file_skip_missing` failure semantics, TTS dropped in favour of STT
+around 0.4/0.5.
 
 ## Agreed next steps (v0.2.4 order)
 
