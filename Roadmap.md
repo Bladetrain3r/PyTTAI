@@ -56,15 +56,19 @@ The pivot release: AI use becomes operator-driven.
   (SDKs report real usage now - no estimation needed)
 - Optional `reasoning` config key, translated per provider
   (adaptive thinking / reasoning_effort / thinking_config)
-- **`:ai` operator** - the first operator, built on CommandResults
-- `/file` becomes cat-equivalent unless piped to `:ai`
-  (old prompt-argument form warns through 0.2.x, removed at 0.3.0)
+- **`:ai` operator** - the first operator, built on CommandResults;
+  stateless (no conversation history in or out)
+- `/file` three-form behavior: bare = cat, trailing prompt =
+  chat-coupled turn (permanent, full history, content not re-echoed),
+  `:ai` = stateless pipeline. Same pattern for similar commands.
 - (Bonus, only if core lands early) TTS provider + `:tts` operator,
   standalone tts.conf
 
 ### v0.2.5 - File Ops Begin
 - `/ls` with glob support
-- Multiple file handling for `/file`
+- Multiple file handling for `/file`: Python-style list input
+  (`/file ["a.md", "b.py"] compare`), strict on unreadable paths unless
+  `file_skip_missing` is set - see spec for grammar
 - `/persist <file> <name>` - explicit save to /sessions
 - Logging improvements
 

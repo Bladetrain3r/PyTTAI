@@ -120,15 +120,51 @@ A conditional may be followed by a `/command` segment mid-statement
 /persist styles.css :ss /print "Ruh-Roh!"
 ```
 
-### v0.2.4 behavioral change to /file (DECIDED)
+### Command invocation forms (DECIDED)
 
-`/file <path>` **without** a trailing prompt or `:ai` becomes a plain
-read (cat-equivalent): text content is the result, non-text files
-return MIME/metadata as a DATA result. It only reaches a model when
-piped: `/file x.md :ai summarise`. The current "prompt argument sends
-to AI" form (`/file x.md summarise this`) is **deprecated**: it keeps
-working through v0.2.x with a stderr warning, and is removed at v0.3.0
-in favour of the operator form.
+Every content-producing slash command has three invocation forms. `/file`
+is the model case; the same pattern applies to similar commands
+(`/paste`, future `/ls` etc.):
+
+| Form | Example | Behavior |
+|---|---|---|
+| **Bare** | `/file notes.md` | Output only. Result rendered to the client (cat-equivalent for text; DATA/MIME metadata for non-text). No AI. |
+| **Chat-coupled** (trailing prompt) | `/file notes.md anything missing?` | Command output + prompt join the **ongoing conversation with full history** as a chat turn. The content is **not echoed to the client** (you have it already) - it lives in conversation context; only the model's reply renders. |
+| **Pipeline** (`:ai`) | `/file notes.md :ai summarise` | Stateless plumbing: the segment result goes to the model **without** conversation history, and the response does not join it (see OPEN q3 - resolved). |
+
+The discriminator is purely syntactic: bare path(s) only = output;
+trailing text = chat-coupled; `:ai` = pipeline. The chat-coupled form is
+**permanent**, not a deprecation candidate - it is how a model can ask
+for a file mid-conversation and receive it in context:
+
+```
+aimodel: Can you pass the files through so I can confirm XYZ?
+/file ["foo.bar", "/home/bar.food"] Take a look
+aimodel: I've taken a look and XYZ does apply.
+```
+
+### Multi-file input (DECIDED)
+
+Commands taking file inputs accept either a single bare path or a
+Python-style list:
+
+```ptt
+/file notes.md                          single path, as today
+/file ["a.md", '/home/b.py'] compare    list - single or double quotes
+```
+
+- Lists are parsed with `ast.literal_eval` (Pythonic: both quote styles
+  work). Input not starting with `[` is a single bare path - first
+  whitespace ends it; paths with spaces use the list form.
+- The tokenizer treats a bracketed list as one token **before** operator
+  splitting - a `:` inside a quoted filename is never an operator.
+- Each file becomes an ordered block in one message; text files get
+  `--- <name> ---` headers (same headers in bare/cat output, so pipeline
+  mode inherits the format).
+- **Failure semantics: strict by default** - any unreadable path fails
+  the whole command with an error naming it. Config flag
+  `file_skip_missing: true` switches to skip-and-warn (warning to
+  stderr, readable files still sent).
 
 ## 5. OPEN questions
 
@@ -140,11 +176,11 @@ in favour of the operator form.
    CommandResult - as what? Proposal: TEXT results pass content
    verbatim; DATA results pass pretty-printed JSON; a future `:str`
    forces plain-text body only. Needs a worked example with /ls output.
-3. **Conversation coupling.** Does a `:ai` segment inside a pipeline
-   join the ongoing conversation history, or run stateless? Proposal:
-   stateless by default (pipelines are plumbing, not chat), with the
-   result printed and *not* added to history. Counter-argument: losing
-   pipeline context from chat may surprise. Decide at implementation.
+3. **Conversation coupling.** ~~Does a `:ai` segment join conversation
+   history or run stateless?~~ **RESOLVED** by the invocation-forms
+   design above: history-coupling has its own syntax (the trailing-
+   prompt chat form), so pipeline `:ai` is **stateless** - it neither
+   reads nor writes conversation history. No flag needed.
 4. **`:ai@provider` connection lifetime.** Transient switch implies the
    named provider must already be configured and connected at startup.
    Lazy-connect on first use is nicer but complicates failure handling

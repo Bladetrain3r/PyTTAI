@@ -29,7 +29,9 @@ See docs/slash-colon-spec.md for the draft operator grammar and open questions.
     - Consider csv for easy timeseries
 [ ] Explicitly specify reasoning parameter in config - optional as not all models use CoT
 [ ] Implement the first and core operator, :ai
-[ ] Convert /file to equivalent of cat unless followed with :ai - if nontext filetype just return MIME data.
+[ ] /file three-form behavior (see spec): bare = cat (nontext returns MIME data),
+    trailing prompt = chat-coupled turn with full history (kept permanently),
+    :ai = stateless pipeline. List input for multifile lands in 0.2.5.
 [ ] (Bonus) Implement tts_provider to take in text and playback the audio stream. Basic local and a few cloud providers.
     - For those long outputs or when you want a codebase explained in the background
     - :tts operator I guess
