@@ -167,16 +167,24 @@ Python-style list:
   `file_skip_missing: true` switches to skip-and-warn (warning to
   stderr, readable files still sent).
 
-## 5. OPEN questions
+## 5. Formerly OPEN questions - all RESOLVED
+
+No open questions remain; the spec is build-ready for v0.2.4 parser
+work.
 
 1. **`::` statement terminator.** ~~Multiple statements on one line?~~
    **RESOLVED: dropped.** Statements-are-lines plus `\` continuation
    covers everything. The `::` token stays **reserved** (parse error,
    not valid text) in case a use ever materializes.
-2. **Result format through pipes.** `:ai` receives the preceding
-   CommandResult - as what? Proposal: TEXT results pass content
-   verbatim; DATA results pass pretty-printed JSON; a future `:str`
-   forces plain-text body only. Needs a worked example with /ls output.
+2. **Result format through pipes.** **RESOLVED: what you saw on screen
+   is what flows down the pipe.** TEXT results pass content verbatim.
+   DATA results pass their plain-text rendering - the same human
+   display the renderer produces (e.g. /ls -> one name per line); a
+   DATA result with no rendering falls back to pretty-printed JSON.
+   This is the Unix-pipe rule, deliberately not the PowerShell
+   object-flow rule. The `:json` operator is **reserved** (parse
+   error today) for the day a pipeline needs the structured form
+   explicitly.
 3. **Conversation coupling.** ~~Does a `:ai` segment join conversation
    history or run stateless?~~ **RESOLVED** by the invocation-forms
    design above: history-coupling has its own syntax (the trailing-

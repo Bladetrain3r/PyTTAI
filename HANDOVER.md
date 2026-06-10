@@ -53,8 +53,10 @@ spec's OPEN questions before v0.2.4 work begins.
 
 ## Pending decisions (owner, after dogfooding)
 
-Spec OPEN questions: only **q2 (DATA results through pipes)** remains.
-Resolved: q1 `::` dropped (token reserved); q3 pipeline `:ai` stateless
+Spec OPEN questions: **none remain - spec is build-ready.**
+Resolved: q1 `::` dropped (token reserved); q2 pipes carry the
+plain-text rendering of results, JSON fallback, `:json` operator
+reserved for explicit structured flow; q3 pipeline `:ai` stateless
 (trailing-prompt form is the permanent chat-coupled path); q4 lazy
 connect for `:ai@provider`, strict fail at call time.
 Also decided: `:ai@provider` syntax, statement-vs-chat line
