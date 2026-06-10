@@ -1,227 +1,126 @@
-# Pyttai Project Status & Roadmap
+# PyTTAI Roadmap
 
-*AI-native shell for developers - safe, extensible, cross-platform*
-THIS IS TO BE TREATED AS MOST CURRENT - ROADMAPS IN DOCS FOLDER ARE ARCHIVE COPIES
+*An AI-augmented terminal that composes with your shell - not a replacement for it.*
 
-## 🎯 Project Vision
+THIS IS THE AUTHORITATIVE ROADMAP. Copies in the docs folder are archives.
+The root CHANGELIST is the live per-version worklog; this document is the
+wider arc. For the operator grammar, see `Pychat/lmchat/docs/slash-colon-spec.md`.
 
-An AI-native terminal that reimagines the command line experience. A full-featured shell where AI assistance is naturally integrated through operators, making complex tasks simple while maintaining the power and composability of traditional Unix tools. Deployable standalone or as a container for debugging, operations, and development.
+## Vision
 
-## ✅ Current State (v0.2.2)
+A terminal chat client where language models are first-class but never
+implicit: output reaches a model only when explicitly piped there. PyTTAI
+provides the conversation, provider switching, and a small operator
+language for composing AI into pipelines; everything else - iteration,
+globbing, variables, the thousand GNU utilities - belongs to the real
+shell driving PyTTAI through `-c`, stdin, and `.ptt` scripts.
 
-### Working Features
-1. **Multi-provider AI system**
-   - `LMStudioProvider` - Local models via LM Studio
-   - `ClaudeProvider` - Anthropic's Claude API
-   - `OpenAIProvider` - GPT-3.5/GPT-4 (requires billing)
-   - Clean abstraction for adding providers
-   - Context preserved across provider switches
+Deployable standalone or container-first for debugging, operations, and
+development workflows.
 
-2. **Core Commands**
-   - `/help` - Show available commands
-   - `/config [key=value]` - Nested configuration support
-   - `/model` - List available models
-   - `/provider [switch NAME]` - Manage AI providers
-   - `/paste [prompt]` - Send clipboard content
-   - `/file <path> [prompt]` - Read and send files
-   - `clear` - Clear conversation
-   - `exit` - Quit application
+## Design Principles
 
-3. **Architecture**
-   - MVC structure with plugin system
-   - UTF-8 enforcement throughout
-   - CommandResult standardization (partial)
-   - Feature plugin system
-   - Verbose mode (`-v` flag)
+1. **AI is explicit.** Slash commands never invoke AI on their own; only
+   `:ai` (and future operator kin) sends anything to a model.
+2. **Compose with the shell, don't replace it.** If bash/pwsh already does
+   it well, PyTTAI's job is to pipe in and out of it cleanly, not to
+   reimplement it.
+3. **Structured everywhere.** Every command yields a CommandResult;
+   success content goes to stdout, errors and progress to stderr, so
+   scripts stay pipeable.
+4. **Safe by default, container-first.** Read-only mounts, explicit
+   persistence via `/persist`, no destructive surprises.
+5. **Transient unless persisted.** Conversations and artifacts are
+   ephemeral until deliberately saved.
 
-### Discovered Behaviors
-- Models treat full conversation history as their own
-- Seamless context handoff between providers
-- Natural "cognitive flow" between different AI models
+## Current State: v0.2.3 (complete)
 
-## 🚧 Critical Design Principles
+- **Providers on official SDKs**: Claude (`anthropic`), OpenAI (`openai`),
+  Gemini (`google-genai`), xAI/LM Studio/Ollama via OpenAI-compatible
+  endpoints. Env-var key fallback, live model listing, streaming.
+- **Vision**: `/file image.png` and `/paste` with auto-downscaling of
+  oversized images; older image payloads replaced by placeholders in API
+  requests.
+- **Error handling**: provider errors surface with provider name; empty
+  responses warn; failed turns are removed from history.
+- **CommandResult standardization**: all command handlers return
+  structured results rendered through one path (stdout/stderr split).
+- **Scripting**: non-interactive `-c` (string / stdin / `.ptt` file),
+  startup chatter on stderr.
 
-1. **Slash commands and operators DO NOT send output to AI unless explicitly requested with `:ai`**
-   ```bash
-   /ls                    # Shows files to user only
-   /ls :ai                # Sends file list to AI
-   ```
+## Near-Term Releases
 
-2. **Container-First Design**
-   - `/workspace` - Ephemeral read/write during session
-   - `/sessions` - Persistent storage (explicit saves only)
-   - All other mounts read-only by default
+### v0.2.4 - Implicit to Explicit
+The pivot release: AI use becomes operator-driven.
+- Token tracking per turn to CSV log; `/tokenuse` for session totals
+  (SDKs report real usage now - no estimation needed)
+- Optional `reasoning` config key, translated per provider
+  (adaptive thinking / reasoning_effort / thinking_config)
+- **`:ai` operator** - the first operator, built on CommandResults
+- `/file` becomes cat-equivalent unless piped to `:ai`
+  (old prompt-argument form warns through 0.2.x, removed at 0.3.0)
+- (Bonus, only if core lands early) TTS provider + `:tts` operator,
+  standalone tts.conf
 
-3. **Safe by Default**
-   - No destructive operations
-   - Explicit persistence via `/persist`
-   - Read-only mounts for production data
+### v0.2.5 - File Ops Begin
+- `/ls` with glob support
+- Multiple file handling for `/file`
+- `/persist <file> <name>` - explicit save to /sessions
+- Logging improvements
 
----
+### v0.2.6 - File Ops Grow
+- `/find`
+- Path traversal mitigation (`..` etc.) - don't over-rely on the container
+- Working directory tracking (`/cd`, `/pwd`)
 
-## 📋 Development Roadmap
+### v0.3.0 - Initial Operators
+Grammar per the slash-colon spec (decide its OPEN questions first):
+- `:r` / `:rr` - write/append output to file
+- `:i` - read file as segment input
+- `:s` / `:ss` - success/failure conditionals
+- Pipe and redirect essentials
+- Parser built against the spec's three-state tokenizer; predictable
+  behavior over feature count
 
-### Phase 1: File Operations & Container Support (Next 3-4 weeks) 🗂️
+### v0.3.x - Small Utilities (kept deliberately boring)
+Pure-Python, trivially structured, operator-friendly text helpers only:
+- `/wc`, `/uniq`, `/sort`, `/head`, `/tail`
+- `/hash`, `/diff` (candidates - confirm during 0.3.x planning)
 
-**Goal**: Implement file operations with container-aware security model
+These earn their place because they operate on CommandResult content
+in-pipeline without shelling out. Anything more is the shell's job.
 
-#### Core File Commands
-```bash
-/ls [pattern]          # List files/directories with glob support
-/cd <path>             # Change working directory  
-/pwd                   # Print working directory
-/find <pattern>        # Recursive file search
-/cat <file>            # Display file contents (rename from /file)
-/persist <file> <name> # Save workspace file to /sessions
-/checkout <file>       # Duplicate /data to /workspace for modification.
+## Parked - Needs Its Own Planning Before Any Build
+
+Each of these was in the old Phase 5/6 sweep; they're real ideas but not
+roadmap items until they get a design pass:
+
+| Item | Why parked |
+|---|---|
+| `/grep`, `/sed`, `/awk` | Mini-languages with deep surface area; overlap `/find` and the shell. Need scoping: what subset, and why not `:p` to system grep? |
+| `/curl`, `/ping`, network utils | Network egress from an AI-adjacent tool needs a security story first |
+| `/json`, `/csv` query tools | Wait until DATA-through-pipes semantics (spec OPEN q2) are settled |
+| SSH server mode / context preloading | Still attractive for the container story; needs auth/session-isolation design |
+| Memory management (`/compress`, context layers) | Owner has separate memory-system experiments planned; don't preempt them |
+| `/explain`, `/suggest`, AI-enhanced utils | Revisit after operators prove the composition model |
+| Package/plugin management | Premature before a plugin API exists |
+
+Out of scope for this roadmap entirely: the AI community workspace
+concept - related interest, separate project, separate planning.
+
+## Container Architecture (target shape)
+
+```
+/app/         Pyttai application (read-only)
+/workspace/   Ephemeral read/write during session
+/sessions/    Persistent, written via /persist only
+/data/        Read-only mount
+/logs/        Read-only mount
+/config/      Read-only mount
 ```
 
-#### Container File Model
-```
-/workspace/            # Read/write (ephemeral)
-/sessions/             # Write via /persist only
-/data/                 # Read-only mount
-/logs/                 # Read-only mount
-/config/               # Read-only mount
-```
-
-#### Implementation Details
-- Use `pathlib` for cross-platform support
-- Track working directory in ChatController
-- Permission checking based on path
-- Glob patterns: `*.py`, `**/*.log`, `src/**/*.js`
-- All commands return `CommandResult` with structured data
-
-### Phase 2: Operator System (Weeks 5-7) 🔗
-
-**Goal**: Enable command composition with security awareness
-
-#### Core Operators
-| Operator | Function | Example |
-|----------|----------|---------|
-| `:p` | Pipe output | `/ls *.log :p grep ERROR` |
-| `:r` | Redirect (workspace only) | `/cat log :r /workspace/analysis.txt` |
-| `:rr` | Append (workspace only) | `/ls :rr /workspace/files.txt` |
-| `:c` | Read file as input | `analyze :c /data/prompt.txt` |
-| `:ai` | Send to current AI | `/ls *.py :ai "review these"` |
-
-#### Provider Operators (Available: claude, local, openai)
-| Operator | Function | Notes |
-|----------|----------|-------|
-| `:claude` | Use Claude | Transient - doesn't change default |
-| `:local` | Use local model | Transient - doesn't change default |
-| `:gpt` | Use OpenAI GPT | Transient - requires billing setup |
-
-#### Future Operator Considerations
-| Operator | Function | Example |
-|----------|----------|---------|
-| `:s`     | Success Conditional | /find . "jim.txt" :s /cat "jim.txt" :ai Summarise |
-| `:ss`    | Failure Conditional | /cat "jim.txt" :ss /find .. "jim.txt"
-
-
-### Phase 3: SSH Interface & Context Preloading (Weeks 8-10) 🔐
-
-**Goal**: Enable SSH attachment to running containers
-
-#### Features
-- SSH server mode for remote access
-- Context preloading from mounted configs
-- Session management across SSH connections
-- Workspace isolation per connection
-
-#### Usage Pattern
-```bash
-# SSH into Pyttai agent attached to app
-ssh -p 2222 pyttai@app-server
-
-# Preloaded with app context
-/context                        # Shows loaded context
-/ls /logs/*.log :ai "errors?"  # Analyze app logs
-/persist report.md daily-check  # Save findings
-```
-
-### Phase 4: Memory Management & Production Features (Weeks 11-13) 🧠
-
-**Goal**: Production-ready features for long-running sessions
-
-#### Commands
-```bash
-/trim <n>              # Keep last n messages
-/context               # Show token count and loaded contexts
-/context estimate      # Estimate API costs
-/compress              # AI-generated summary replacement
-/workspace clear       # Clean ephemeral storage
-```
-
-#### Production Safety
-- Auto-trim before limits
-- Workspace size monitoring
-- Session rotation
-- Audit logging for /persist operations
-
----
-
-## 🔧 Implementation Priorities
-
-### Immediate Next Steps
-
-1. **ComandResult Standardisation**
-All outputs in a structured format for easy handling and AI ingestion.
-
-2. **File Operations with Container Awareness**
-```python
-class FileOpsController:
-    def __init__(self, chat_controller):
-        self.chat = chat_controller
-        self.cwd = Path("/workspace")  # Default to workspace
-        self.workspace = Path("/workspace")
-        self.sessions = Path("/sessions")
-        self.read_only_paths = ["/data", "/logs", "/config"]
-    
-    def can_write(self, path: Path) -> bool:
-        return path.is_relative_to(self.workspace)
-    
-    def list_files(self, pattern="*") -> CommandResult
-    def change_directory(self, path: str) -> CommandResult
-    def persist_file(self, source: str, name: str) -> CommandResult
-```
-
-3. **Refactor Command Processor**
-Needs to avoid using AI unless specified. Implement :ai early?
-
-4. **Container Detection**
-```python
-def detect_environment():
-    if os.path.exists('/.dockerenv'):
-        return "container"
-    return "host"
-```
-
----
-
-## 🏗️ Architecture for Container Deployment
-
-### Directory Structure (Container)
-```
-/app/                  # Pyttai application (read-only)
-├── main.py
-└── lmchat/
-
-/workspace/            # Ephemeral workspace (read/write)
-
-/sessions/             # Persistent storage (mounted)
-
-/data/                 # Application data (mounted, read-only)
-/logs/                 # Application logs (mounted, read-only)
-/config/               # Application config (mounted, read-only)
-```
-
-### Docker Compose Example
 ```yaml
 services:
-  target-app:
-    image: myapp:latest
-    
   pyttai-debug:
     image: pyttai:latest
     volumes:
@@ -229,124 +128,21 @@ services:
       - app-data:/data:ro
       - app-logs:/logs:ro
       - app-config:/config:ro
-    environment:
-      - PRELOAD_CONTEXT=/config/app.context
-    ports:
-      - "2222:22"  # SSH access
 ```
 
----
+## Known Issues / Debt
 
-## 🐛 Known Issues
+- Local-provider vision needs a retest post-downscaling (pre-0.2.3
+  failure was likely the oversized payload)
+- No test framework; sessions are validated with ad-hoc fake-server
+  scripts - formalize into `tests/` during 0.2.x
+- No pyproject.toml; `sys.path` insertion in main.py
+- `blob/` generated artifacts are stale
 
-1. **OpenAI Provider** - Requires active billing
-2. **Mixed Return Types** - Need CommandResult everywhere
-3. **No Working Directory Tracking** - File ops assume current directory
+## Longer Arc
 
----
-
-## ✅ Testing Checklist
-
-### Phase 1 (File Operations)
-- [ ] Basic file listing works
-- [ ] Glob patterns work
-- [ ] Directory navigation respects boundaries
-- [ ] Write operations limited to /workspace
-- [ ] /persist saves to /sessions correctly
-- [ ] Read-only mounts enforced
-
-### Phase 2 (Container Integration)
-- [ ] Container detection works
-- [ ] SSH interface accessible
-- [ ] Context preloading functions
-- [ ] Workspace isolation per session
-- [ ] No data leaks between sessions
-
-### Phase 5: Core Utilities & Shell Features (Weeks 14-18) 🛠️
-
-**Goal**: Build essential utilities that make Pyttai a practical daily-driver terminal
-
-#### Text Processing
-```bash
-/grep <p> [files]      # Pattern matching
-/sed <p> <r> [files]   # Stream editing
-/awk '{print $1}'      # Field processing
-/sort [options]        # Sort lines
-/uniq                  # Remove duplicates
-/wc                    # Word/line count
-```
-
-#### Data Processing
-```bash
-/json <path>           # JSON parsing/querying
-/csv <file>            # CSV operations
-/diff <f1> <f2>        # File comparison
-/hash <file>           # Checksums
-```
-
-#### Network & System
-```bash
-/curl <url>            # HTTP requests
-/ping <host>           # Network test
-/ps                    # Process list
-/env                   # Environment vars
-/which <cmd>           # Find executables
-```
-
-All utilities:
-- Work with operators (`:p`, `:ai`, etc.)
-- Return structured CommandResult
-- Cross-platform implementation
-- AI-enhancement ready
-- Clean Python implementation, not trying to replicate shell applications.
-- Output in a standard object format for handling by AI and scripts
-- Consider making it less confusing than powershell object handling... 
-- :str pipe to only output the plaintext body portion of the object to stdout?
-
-### Phase 6: Advanced Shell Features (Weeks 19-24) 🚀
-
-**Goal**: Features that surpass traditional shells
-
-#### AI-Enhanced Utilities
-```bash
-/explain <command>     # Explain any command
-/suggest              # Context-aware suggestions
-/optimize <script>    # Improve code/commands
-/translate <fr> <to>  # Language translation
-```
-
-#### Package Management
-```bash
-/install <util>       # Add new utilities
-/update               # Update Pyttai
-/plugin add <name>    # Community extensions
-```
-
----
-
-## Long-Term Vision 🌟
-
-### Pyttai as Primary Shell
-- Full POSIX compatibility layer
-- Native OS integration
-- Performance optimizations
-- Rich TUI elements
-
-### Pyttai OS
-- Minimal Linux distro with Pyttai as init
-- AI-native system management
-- Natural language configuration
-- Containerized by default
-
-### Principle Consistency
-- Least Privilege First Principle
-- AI use is explicit unless it's a regular conversation without commands
-- Useful tool, not a brain replacement for fools
-
-### Use Cases
-1. **Development** - AI pair programming in terminal
-2. **Operations** - Smart system management
-3. **Data Science** - Pipeline processing with AI
-4. **Education** - Learn by conversation
-5. **Debugging** - Attach to any system
-6. **Automation** - Natural language scripts
+If the operator model proves out: richer TUI elements, deeper container
+integration (attach-to-anything debugging), and non-interactive agentic
+scripts as a first-class use case. The measure for any addition stays
+the same: does it make composing AI with the existing shell easier, or
+is it rebuilding the shell? Build the former, park the latter.
