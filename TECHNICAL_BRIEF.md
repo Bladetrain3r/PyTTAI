@@ -22,8 +22,10 @@ Pychat/
 └── lmchat/
     ├── core/
     │   ├── chat.py             ChatController - orchestrates everything:
-    │   │                       provider setup, builtin commands,
-    │   │                       streaming, result rendering
+    │   │                       provider setup, builtin commands, streaming,
+    │   │                       result rendering, pipeline execution
+    │   ├── parser.py           Slash-colon statement tokenizer/parser +
+    │   │                       script preprocessing (comments, continuation)
     │   ├── providers.py        LLMProvider ABC + implementations +
     │   │                       ProviderManager registry
     │   ├── controllers.py      Clipboard/File/Session/Command controllers
@@ -94,8 +96,36 @@ clean. Startup banners are already stderr.
   recent image - the latest stays live for follow-ups.
 
 **Line classification** (per the slash-colon spec): `/`-prefixed lines
-are statements (operator parsing, once implemented), everything else is
-chat sent verbatim. Operators are never parsed inside chat messages.
+are statements (parsed by `parser.py`), everything else is chat sent
+verbatim. Operators are never parsed inside chat messages. Unknown or
+reserved (`::`, `:json`) operator tokens are parse errors raised before
+any execution.
+
+**Operators (v0.2.4)**: `:ai [prompt]` and `:ai@provider [prompt]` -
+stateless (no conversation history in or out), chainable, output streams
+live. `@provider` resolves lazily: configured-but-unconnected providers
+are constructed on first use with no connection test; unavailability is
+a strict segment failure. The command segment must return a
+CommandResult (bare form) to feed a chain. Pipe content: TEXT verbatim,
+DATA as pretty JSON (plain renderings per spec when commands grow them).
+
+**Invocation forms**: `/file path` = cat (images return MIME metadata,
+never base64 to the terminal); `/file path prompt` = chat-coupled turn
+with full history; `/file path :ai prompt` = stateless pipeline.
+
+**Token tracking**: providers expose `last_usage` after each stream
+(Anthropic final-message usage, OpenAI-compat `stream_options
+include_usage` - disable with `track_usage: false` for servers that
+reject it, Gemini `usage_metadata`). `ChatController._record_usage`
+appends to session memory and `~/.pyttai/tokens.csv`
+(timestamp,provider,model,tokens_in,tokens_out); `/tokenuse` reports
+session totals. `token_log: false` disables the file.
+
+**Reasoning config**: optional `"reasoning": "off"|"low"|"medium"|"high"`
+per provider (top-level applies to the default provider). Claude maps
+any on-value to adaptive thinking; OpenAI/xAI send `reasoning_effort`;
+Gemini sets `thinking_config` (0 budget for off, dynamic otherwise).
+Unset = parameter omitted entirely.
 
 ## Configuration
 
@@ -129,11 +159,14 @@ the full streaming path without real keys and should be the seed of a
 
 ## Known Limitations
 
-- Operators (`:ai` et al.) are specified but not yet implemented -
-  v0.2.4 work.
-- `/file` still auto-sends to AI (deprecation to cat-semantics planned).
+- `:r`/`:rr`/`:i`/`:s`/`:ss` operators are specified but land in v0.3.0;
+  pipelines currently abort on first failure.
+- `/file` list input (`["a", "b"]`) is specified but lands in v0.2.5;
+  bracket syntax is recognized and politely refused until then.
+- Backslash continuation works in scripts (`-c` file/stdin); interactive
+  continuation is not implemented.
 - `SessionController` exists but `/persist` and session save/load
-  commands aren't wired yet.
+  commands aren't wired yet (v0.2.5).
 - Local-provider vision pending a post-downscale retest.
 - No pyproject.toml/packaging; path manipulation in main.py.
 

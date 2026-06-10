@@ -24,12 +24,17 @@
 [x] Skip tests launch flag
 
 ## v0.2.4 - Implicit to Explicit
-See docs/slash-colon-spec.md for the draft operator grammar and open questions.
-[ ] Track tokens in and out per turn to a log file. Check current session with /tokenuse (moving forward from memory management)
-    - Consider csv for easy timeseries
-[ ] Explicitly specify reasoning parameter in config - optional as not all models use CoT
-[ ] Implement the first and core operator, :ai
-[ ] /file three-form behavior (see spec): bare = cat (nontext returns MIME data),
+See docs/slash-colon-spec.md for the operator grammar (all questions resolved).
+[x] Track tokens in and out per turn to ~/.pyttai/tokens.csv; /tokenuse (alias
+    /tokens) shows session totals per provider. Disable file log: token_log=false.
+[x] Explicitly specify reasoning parameter in config - optional as not all models use CoT
+    - "reasoning": "off"|"low"|"medium"|"high" per provider (or top-level for default)
+    - Claude -> adaptive thinking; OpenAI/xAI -> reasoning_effort; Gemini -> thinking_config
+[x] Implement the first and core operator, :ai
+    - :ai and :ai@provider, stateless, chainable; lazy provider connect
+    - statement parser per spec: quoting, bracket lists, # comments and
+      backslash continuation in scripts; unknown/reserved tokens fail pre-execution
+[x] /file three-form behavior (see spec): bare = cat (nontext returns MIME data),
     trailing prompt = chat-coupled turn with full history (kept permanently),
     :ai = stateless pipeline. List input for multifile lands in 0.2.5.
 [-] TTS dropped for focus. STT instead around 0.4/0.5: transcripts from audio,

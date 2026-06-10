@@ -8,13 +8,29 @@ from pathlib import Path
 from lmchat.core.models import CommandResult, OutputFormat
 
 def create_file_handler(chat_controller):
-    """Create file command handler"""
+    """Create file command handler.
+
+    Three invocation forms per the slash-colon spec:
+      /file <path>            bare: cat-equivalent CommandResult, no AI
+      /file <path> <prompt>   chat-coupled: joins the conversation with
+                              full history (content not re-echoed)
+      /file <path> :ai ...    pipeline: the bare result feeds the operator
+                              (the :ai chain is handled upstream by the
+                              parser - this handler just sees the bare form)
+    """
     def handle_file(args: str):
         if not args:
             return CommandResult.error(
                 "No file path given",
                 code="USAGE",
                 suggestion="Usage: /file <path> [optional prompt]"
+            )
+
+        if args.lstrip().startswith('['):
+            return CommandResult.error(
+                "List input lands in v0.2.5",
+                code="NOT_YET_IMPLEMENTED",
+                suggestion="Pass a single path for now"
             )
 
         # Parse args - first word is path, rest is prompt
@@ -27,36 +43,35 @@ def create_file_handler(chat_controller):
         if not file_result.success:
             return file_result
 
-        # Check if it's an image
+        # Image handling
         if file_result.format == OutputFormat.DATA:
-            image_data = file_result.content
-            print(f"Sending image {file_path.name}...", file=sys.stderr)
-            chat_controller.send_image(
-                prompt if prompt else f"[Image: {file_path.name}]",
-                image_data['data'],
-                image_data['format']
-            )
-            return None  # streaming already rendered; never return send bools
+            if prompt:
+                # Chat-coupled: send to the vision model in-conversation
+                image_data = file_result.content
+                print(f"Sending image {file_path.name}...", file=sys.stderr)
+                chat_controller.send_image(
+                    prompt,
+                    image_data['data'],
+                    image_data['format']
+                )
+                return None  # streamed; never return send bools
+            # Bare: MIME/metadata only - no base64 dump to the terminal
+            meta = {k: v for k, v in file_result.content.items() if k != "data"}
+            meta["mime_type"] = f"image/{meta.get('format', 'unknown')}"
+            return CommandResult.success_data(meta)
 
-        # Text file handling
         content = file_result.content
 
-        # Detect language (returns CommandResult)
+        if not prompt:
+            # Bare: cat-equivalent, raw content as the result
+            return CommandResult.success_text(content)
+
+        # Chat-coupled: language-fenced content + prompt join the conversation
         language_result = chat_controller.file.detect_language(file_path)
-        language = None
+        language = ""
         if language_result.success:
-            language = language_result.content.get('language')
-
-        # Build message
-        if language:
-            file_header = f"```{language}\n{content}\n```"
-        else:
-            file_header = f"```\n{content}\n```"
-
-        if prompt:
-            message = f"{prompt}\n\n{file_header}"
-        else:
-            message = f"File: {file_path.name}\n\n{file_header}"
+            language = language_result.content.get('language') or ""
+        message = f"{prompt}\n\n```{language}\n{content}\n```"
 
         print(f"Sending {file_path.name}...", file=sys.stderr)
         chat_controller.send_message(message)

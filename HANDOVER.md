@@ -5,12 +5,14 @@ when state moves on; treat staleness as a bug.
 
 ## Where things stand
 
-PyTTAI is at **v0.2.3 complete, unreleased/untested-in-anger**. All
-v0.2.3 CHANGELIST items are done and on branch
-`claude/happy-hawking-8cg337` (PR #2 merged the first two commits to
-main; the CommandResult sweep + spec are on the branch awaiting dogfood
-and a follow-up PR). Owner is testing 0.2.3 next, then deciding the
-spec's OPEN questions before v0.2.4 work begins.
+PyTTAI is at **v0.2.4 feature-complete on branch
+`claude/happy-hawking-8cg337`** (0.2.3 was dogfooded OK; PR #2 merged
+the first two commits to main, everything since awaits a follow-up PR).
+v0.2.4 delivered: token tracking + /tokenuse, reasoning config key,
+the slash-colon statement parser, the :ai / :ai@provider operator
+(stateless, chainable, lazy connect), and /file's three invocation
+forms. The spec has NO open questions. Next: owner dogfoods 0.2.4;
+then v0.2.5 (/ls, /file list input, /persist, logging).
 
 ## This session's work (3 pushes)
 
@@ -65,15 +67,15 @@ classification, /file three forms (bare=cat / prompt=chat-coupled /
 `file_skip_missing` failure semantics, TTS dropped in favour of STT
 around 0.4/0.5.
 
-## Agreed next steps (v0.2.4 order)
+## Agreed next steps
 
-1. Token tracking (cheap now: Anthropic final-message usage, OpenAI
-   `stream_options={"include_usage": true}`, Gemini `usage_metadata`) -
-   CSV log + `/tokenuse`
-2. `reasoning` config key, per-provider translation (adaptive thinking /
-   reasoning_effort / thinking_config), optional
-3. `:ai` operator on the CommandResult foundation
-4. TTS is (Bonus) - don't let it eat the release
+v0.2.4 is DONE (token tracking, reasoning key, parser, :ai, /file
+three forms - see CHANGELIST). v0.2.5 queue: /ls with globs, /file
+list input via ast.literal_eval (bracket tokenization already in the
+parser; handler currently refuses lists politely), /persist,
+logging improvements. v0.3.0: :r/:rr/:i/:s/:ss per spec.
+Implementation notes for 0.2.4 internals live in TECHNICAL_BRIEF
+"Core Conventions" - read before touching chat.py or parser.py.
 
 ## Testing approach used
 

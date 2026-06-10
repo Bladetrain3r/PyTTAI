@@ -15,6 +15,7 @@ except ImportError:
 # Add parent directory to path for development
 sys.path.insert(0, str(Path(__file__).parent))
 from lmchat.core.chat import ChatController
+from lmchat.core.parser import preprocess_script
 from lmchat.features import clipboard, file_input
 
 
@@ -108,6 +109,9 @@ def main():
             # Multiple arguments - join as single command
             commands = [' '.join(args.command)]
         
+        # Script preprocessing: drop # comments, join \ continuations
+        commands = preprocess_script(commands)
+
         # Execute each command
         for cmd in commands:
             if cmd.strip():  # Skip empty lines
