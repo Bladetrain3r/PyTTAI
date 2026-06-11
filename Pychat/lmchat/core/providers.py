@@ -47,6 +47,8 @@ class LLMProvider(ABC):
     def __init__(self, config: Dict):
         self.config = config
         self.name = "base"
+        # Populated after each completed stream: {"input": n, "output": n}
+        self.last_usage: Optional[Dict] = None
 
     @abstractmethod
     def test_connection(self) -> bool:
@@ -130,6 +132,7 @@ class OpenAICompatibleProvider(LLMProvider):
         return True
 
     def stream_completion(self, messages: List[Dict], **kwargs) -> Generator[str, None, None]:
+        self.last_usage = None
         params = {
             "model": kwargs.get("model", self.model),
             "messages": messages,
@@ -139,11 +142,23 @@ class OpenAICompatibleProvider(LLMProvider):
         temperature = kwargs.get("temperature", self.config.get("temperature"))
         if temperature is not None and self._supports_sampling():
             params["temperature"] = temperature
+        reasoning = kwargs.get("reasoning", self.config.get("reasoning"))
+        if reasoning and reasoning != "off":
+            params["reasoning_effort"] = reasoning
+        # Final chunk carries usage; disable via "track_usage": false if a
+        # server rejects the stream_options parameter
+        if self.config.get("track_usage", True):
+            params["stream_options"] = {"include_usage": True}
 
+        usage = None
         stream = self.client.chat.completions.create(**params)
         for chunk in stream:
+            if getattr(chunk, "usage", None):
+                usage = chunk.usage
             if chunk.choices and chunk.choices[0].delta and chunk.choices[0].delta.content:
                 yield chunk.choices[0].delta.content
+        if usage:
+            self.last_usage = {"input": usage.prompt_tokens, "output": usage.completion_tokens}
 
 
 class LMStudioProvider(OpenAICompatibleProvider):
@@ -261,6 +276,7 @@ class ClaudeProvider(LLMProvider):
         return blocks
 
     def stream_completion(self, messages: List[Dict], **kwargs) -> Generator[str, None, None]:
+        self.last_usage = None
         system_prompt = None
         claude_messages = []
         for msg in messages:
@@ -283,10 +299,20 @@ class ClaudeProvider(LLMProvider):
         temperature = kwargs.get("temperature", self.config.get("temperature"))
         if temperature is not None and not model.startswith(self.NO_SAMPLING_PREFIXES):
             params["temperature"] = temperature
+        reasoning = kwargs.get("reasoning", self.config.get("reasoning"))
+        if reasoning and reasoning != "off":
+            # Adaptive thinking on supporting models; the level knob is an
+            # OpenAI/Gemini concept - Claude decides depth itself
+            params["thinking"] = {"type": "adaptive"}
 
         with self.client.messages.stream(**params) as stream:
             for text in stream.text_stream:
                 yield text
+            final = stream.get_final_message()
+            self.last_usage = {
+                "input": final.usage.input_tokens,
+                "output": final.usage.output_tokens,
+            }
 
 
 class GeminiProvider(LLMProvider):
@@ -339,6 +365,7 @@ class GeminiProvider(LLMProvider):
         return parts
 
     def stream_completion(self, messages: List[Dict], **kwargs) -> Generator[str, None, None]:
+        self.last_usage = None
         system_prompt = None
         contents = []
         for msg in messages:
@@ -356,14 +383,30 @@ class GeminiProvider(LLMProvider):
         temperature = kwargs.get("temperature", self.config.get("temperature"))
         if temperature is not None:
             gen_config.temperature = temperature
+        reasoning = kwargs.get("reasoning", self.config.get("reasoning"))
+        if reasoning == "off":
+            gen_config.thinking_config = genai_types.ThinkingConfig(thinking_budget=0)
+        elif reasoning:
+            # -1 = dynamic budget; Gemini decides depth per request
+            gen_config.thinking_config = genai_types.ThinkingConfig(thinking_budget=-1)
 
+        usage = None
         for chunk in self.client.models.generate_content_stream(
             model=kwargs.get("model", self.model),
             contents=contents,
             config=gen_config,
         ):
+            if chunk.usage_metadata:
+                usage = chunk.usage_metadata
             if chunk.text:
                 yield chunk.text
+        if usage:
+            prompt_tokens = usage.prompt_token_count or 0
+            total_tokens = usage.total_token_count or 0
+            self.last_usage = {
+                "input": prompt_tokens,
+                "output": max(total_tokens - prompt_tokens, 0),
+            }
 
 
 class ProviderManager:

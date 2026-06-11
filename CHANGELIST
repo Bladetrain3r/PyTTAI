@@ -8,7 +8,9 @@
     - Claude/OpenAI/xAI/Gemini providers, plus LM Studio/Ollama via OpenAI-compatible endpoints
     - API keys fall back to environment variables (ANTHROPIC_API_KEY etc.)
     - Live model listing for all providers, current default model IDs
-[ ] All controller outputs as CommandResults
+[x] All controller outputs as CommandResults
+    - Command handlers return CommandResults rendered by one renderer
+    - Success content to stdout, errors (with suggestions) to stderr
 [X] Dockerfile entrypoint improvements and better startup sample command.
 [x] Improve error handling and debug output
     [x] Provider/API errors surface with provider name instead of failing silently
@@ -22,9 +24,21 @@
 [x] Skip tests launch flag
 
 ## v0.2.4 - Implicit to Explicit
-[ ] Implement the first and core operator, :ai
-[ ] (Bonus) Implement Kokoro API provider to take in text and playback the audio stream
-    - For those long outputs or when you want a codebase explained in the background
+See docs/slash-colon-spec.md for the operator grammar (all questions resolved).
+[x] Track tokens in and out per turn to ~/.pyttai/tokens.csv; /tokenuse (alias
+    /tokens) shows session totals per provider. Disable file log: token_log=false.
+[x] Explicitly specify reasoning parameter in config - optional as not all models use CoT
+    - "reasoning": "off"|"low"|"medium"|"high" per provider (or top-level for default)
+    - Claude -> adaptive thinking; OpenAI/xAI -> reasoning_effort; Gemini -> thinking_config
+[x] Implement the first and core operator, :ai
+    - :ai and :ai@provider, stateless, chainable; lazy provider connect
+    - statement parser per spec: quoting, bracket lists, # comments and
+      backslash continuation in scripts; unknown/reserved tokens fail pre-execution
+[x] /file three-form behavior (see spec): bare = cat (nontext returns MIME data),
+    trailing prompt = chat-coupled turn with full history (kept permanently),
+    :ai = stateless pipeline. List input for multifile lands in 0.2.5.
+[-] TTS dropped for focus. STT instead around 0.4/0.5: transcripts from audio,
+    discuss a meeting recording in-conversation. See roadmap.
 
 ## v0.2.5 - File Ops Begin
 [ ] /ls command
@@ -39,12 +53,21 @@
 [ ] :r operator for the ability to write files
 [ ] :i operator supplementing /file command
 [ ] :s and :ss success and failure operators
-[ ] :: operator to act as a statement terminator
+[-] :: dropped - statements-are-lines + backslash continuation covers it; token stays reserved
 [ ] Get good parsing patterns and predictable behaviors early. This is a wish.
+[ ] Essential redirect and pipe operators
+
+### v0.3.0 Decision Notes
 - Draft example command
 ```ptt
 /file roadmap.txt :ai claude Add the green button class from phase 1 to the stylesheet, only output the code. :r styles.css :s \
-/persist styles.css \
-:ss /print "Ruh-Roh!"
+/persist styles.css :ss /print "Ruh-Roh!"
 ```
-[ ] Essential redirect and pipe operators
+#### Thoughts on syntax:
+- /command must be on newlines always.
+- Commands are always command -> input -> params
+- :command / operators only use the preceding output as input
+- No globbing or loops to start with - don't want variables or list iteration or arrays or all the BASH boggins just yet.
+- That kind of scripting can be done via combination of actual shell and the -c flag.
+
+## v0.3.1 - Probably Polish
