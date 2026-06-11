@@ -48,6 +48,10 @@ See docs/slash-colon-spec.md for the operator grammar (all questions resolved).
 ## v0.2.6 - File Ops Grow
 [ ] /find command
 [ ] Pre-emptively mitigate use of .. and other traversal vulnerabilities. Don't over-rely on the container.
+[ ] Context preload files: "context_files" in a provider config block, appended
+    to sysprompt. Like skills but pre-decided. Mtime-cached live reads; decide
+    whether stateless :ai includes them. See roadmap design notes.
+[ ] README refresh (still describes 0.2.2)
 
 ## v0.3.0 - Initial Operators
 [ ] :r operator for the ability to write files

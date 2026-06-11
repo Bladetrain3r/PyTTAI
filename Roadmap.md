@@ -74,6 +74,22 @@ The pivot release: AI use becomes operator-driven.
 - `/find`
 - Path traversal mitigation (`..` etc.) - don't over-rely on the container
 - Working directory tracking (`/cd`, `/pwd`)
+- **Context preload files**: per-provider config key (e.g.
+  `"context_files": ["~/.pyttai/contexts/myproject.md"]`) whose contents
+  append to the system prompt - like skills, but pre-decided in config
+  rather than model-invoked. Design notes:
+  - Per-provider block and/or top-level (default provider), same
+    precedence pattern as `reasoning`
+  - Read at call time with mtime caching, so editing the file mid-session
+    takes effect without restart
+  - Applies to chat-coupled turns; whether stateless `:ai` segments
+    include it is a decision to make (lean: yes for `@provider` - it's
+    part of that provider's persona - but decide before building)
+  - Preload tokens count on every turn - surface in `/tokenuse` so the
+    cost is visible
+  - Pairs with the container `PRELOAD_CONTEXT` idea from the SSH phase
+- README refresh: version header and feature list still describe 0.2.2
+  (operators, Gemini, env-var keys, /tokenuse all missing)
 
 ### v0.3.0 - Initial Operators
 Grammar per the slash-colon spec (decide its OPEN questions first):
