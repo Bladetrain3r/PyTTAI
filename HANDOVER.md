@@ -77,8 +77,11 @@ exists; general logging TBD). Result model now tri-state
 SUCCESS/NOTHING/ERROR (see CommandResult.nothing + is_nothing) and DATA
 results can carry a plain-text `render` (preferred by renderer + pipes).
 v0.2.6: /find, path-traversal mitigation, /cd /pwd, context preload
-files (per-provider context_files, always loaded incl stateless :ai).
-v0.3.0: :r/:rr/:i (data) + :s/:ss (control, bash &&/||) per spec.
+files (per-provider context_files, always loaded incl stateless :ai),
+token estimator + oversized-input guard. v0.2.8: proper core logger
+module (rsyslog-friendly) - DO PRE-0.3.0 while surface is small,
+retrofit existing print-to-stderr flows. v0.3.0: :r/:rr/:i (data) +
+:s/:ss (control, bash &&/||) per spec. README now current (0.2.5).
 Implementation conventions live in TECHNICAL_BRIEF "Core Conventions".
 
 ## Testing approach used

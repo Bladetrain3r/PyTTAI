@@ -55,15 +55,23 @@ See docs/slash-colon-spec.md for the operator grammar (all questions resolved).
 [x] /persist@context [name] - save conversation; /sessions lists, /restore loads.
     @variant selector generalized to command words (mirrors :ai@provider).
     Context names basenamed (no sessions-dir escape).
-[ ] Logging Improvements (still open - token CSV exists; broader logging TBD)
+[>] Logging -> deferred to 0.2.8 (proper core logger module, not ad-hoc prints)
 
 ## v0.2.6 - File Ops Grow
 [ ] /find command
 [ ] Pre-emptively mitigate use of .. and other traversal vulnerabilities. Don't over-rely on the container.
 [ ] Context preload files: "context_files" in a provider config block, appended
-    to sysprompt. Like skills but pre-decided. Mtime-cached live reads; decide
-    whether stateless :ai includes them. See roadmap design notes.
-[ ] README refresh (still describes 0.2.2)
+    to sysprompt. Like skills but pre-decided. Mtime-cached live reads; always
+    loaded incl stateless :ai. See roadmap design notes.
+[x] README refresh - now reflects current state (commands, operators, providers)
+
+## v0.2.8 - Logging
+[ ] Proper logger module in core (replaces ad-hoc print-to-stderr).
+    - Structured, levelled output that rsyslog handles cleanly (syslog-style
+      lines / severity); nothing fancy.
+    - Retrofit existing flows (provider errors, persist, pipeline, token use)
+      to log through it. Do this PRE-0.3.0 while the surface is still small -
+      adding it after the operator machinery grows is far more painful.
 
 ## v0.3.0 - Initial Operators
 Data operators (consume/transform value) vs control operators (gate on status).

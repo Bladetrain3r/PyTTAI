@@ -71,7 +71,6 @@ The pivot release: AI use becomes operator-driven.
 - `/persist@context [name]` - save the conversation; `/sessions` lists
   saved contexts, `/restore <name>` loads one (the `@` variant selector
   generalizes from `:ai@provider`)
-- Logging improvements
 
 ### v0.2.6 - File Ops Grow
 - `/find`
@@ -92,8 +91,6 @@ The pivot release: AI use becomes operator-driven.
   - Preload tokens count on every turn - surface in `/tokenuse` so the
     cost is visible
   - Pairs with the container `PRELOAD_CONTEXT` idea from the SSH phase
-- README refresh: version header and feature list still describe 0.2.2
-  (operators, Gemini, env-var keys, /tokenuse all missing)
 - **Token estimator + oversized-input guard**: estimate tokens before
   sending (cheap chars/4 heuristic by default; real per-provider count
   where cheap - Anthropic/Gemini count_tokens). When an input (e.g. a
@@ -103,6 +100,18 @@ The pivot release: AI use becomes operator-driven.
     since scripts can't be prompted
   - Mirrors the existing image auto-downscale precedent (size-based
     pre-send action) and feeds `/tokenuse` visibility
+
+### v0.2.8 - Logging
+A proper logger module in `core`, before the operator surface grows.
+- Replaces ad-hoc `print(..., file=sys.stderr)` with structured, levelled
+  logging. Nothing fancy - syslog-style lines / severities that rsyslog
+  ingests cleanly out of the box.
+- Retrofit existing flows (provider/stream errors, persist, pipeline
+  execution, token recording) to log through it.
+- **Do this pre-0.3.0 deliberately**: wiring logging into the codebase
+  while it's still small is far cheaper than after the operator and
+  utility machinery lands. The stdout-result / stderr-status split stays;
+  logging is the diagnostic channel alongside it.
 
 ### v0.3.0 - Initial Operators
 Grammar per the slash-colon spec (decide its OPEN questions first):
