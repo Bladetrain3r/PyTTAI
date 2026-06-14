@@ -104,22 +104,61 @@ selection syntactic. By extension, future media operators inherit it
 
 ### v0.3.0 - composition
 
-| Operator | Function | Status |
-|---|---|---|
-| `:r <path>`  | Redirect (write) preceding output to file. Result = success/failure of the write. | DECIDED |
-| `:rr <path>` | Append preceding output to file. | DECIDED |
-| `:i <path>`  | Insert file content as the segment's input (supplements /file). | DRAFT |
-| `:s`  | Run the following segment only if the preceding result succeeded. | DECIDED |
-| `:ss` | Run the following segment only if the preceding result failed. | DECIDED |
-| `:p <cmd>` | Pipe output to an internal command. | DEFERRED until /ls, /grep etc. exist |
+Operators fall into two kinds, mirroring the shell's distinction between
+`|` and `&&`/`||`:
 
-A conditional may be followed by a `/command` segment mid-statement
-(the one place a slash command is not at line start):
+- **Data operators** consume the running pipeline value and produce a new
+  one: `:ai`, `:r`, `:rr`, `:i`.
+- **Control operators** gate whether the next segment runs, based on the
+  running success status; they do **not** alter the value: `:s`, `:ss`.
+
+| Operator | Kind | Function | Status |
+|---|---|---|---|
+| `:r <path>`  | data | Write running value to file. Result = success/failure of the write (not the content). | DECIDED |
+| `:rr <path>` | data | Append running value to file. | DECIDED |
+| `:i <path>`  | data | Read `<path>` and emit its content as the running value (TEXT, or DATA/MIME for non-text - same as `/file` bare). The explicit path means it ignores the preceding value; it is `/file`-bare usable mid-pipeline. Primary use: read back a file just written with `:r` to keep processing it. Missing/unreadable = strict failure. | DECIDED |
+| `:s`  | control | Run the following segment only if the running result **succeeded** (bash `&&`). | DECIDED |
+| `:ss` | control | Run the following segment only if the running result **failed** (bash `||`). | DECIDED |
+| `:p <cmd>` | data | Pipe value to an internal command. | DEFERRED until /ls, /grep etc. exist |
+
+#### Conditionals follow bash `&&` / `||` semantics (DECIDED)
+
+The statement carries a **running result** (the CommandResult of the last
+segment that actually executed). Control operators test its success bool:
+
+- `:s` runs its segment only if the running result succeeded; otherwise
+  the segment is skipped and the (failed) running result **passes
+  through** unchanged.
+- `:ss` runs its segment only if the running result failed; otherwise
+  skipped, and the (successful) result passes through.
+
+Because skipped segments preserve status, conditionals chain
+left-associatively exactly as in bash:
+
+```
+A :s B :ss C     ==     A && B || C
+```
+
+A control operator gates a **`/command`** (run fresh - it does not
+consume the running value, like the right-hand side of `&&`) or a data
+operator (which does consume it). The statement's overall success is the
+status of the last segment that ran.
 
 ```ptt
-/file styles.css :ai@claude "Only output the corrected CSS" :r styles.css :s \
-/persist styles.css :ss /print "Ruh-Roh!"
+# Write the cleaned file, then persist it only if the write succeeded.
+/file styles.css :ai@claude "Only output the corrected CSS" :r styles.css :s /persist styles.css
 ```
+
+`:ss` mirrors this for the failure branch - it gates a recovery
+`/command`. There is deliberately **no `/print`**: the tail of every
+pipeline already renders to the client, so emitting output is implicit
+in the final segment; a literal-message sink is not a core command.
+
+Per-command success definition (what counts as failure for a given
+command - e.g. does `/find` with zero matches fail like `grep` or
+succeed like `find`?) is decided **with each command**, not here. Lean
+for search commands: no match = failure, so `:s` is useful ("if found,
+then...").
 
 ### Command invocation forms (DECIDED)
 

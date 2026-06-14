@@ -54,23 +54,26 @@ See docs/slash-colon-spec.md for the operator grammar (all questions resolved).
 [ ] README refresh (still describes 0.2.2)
 
 ## v0.3.0 - Initial Operators
-[ ] :r operator for the ability to write files
-[ ] :i operator supplementing /file command
-[ ] :s and :ss success and failure operators
+Data operators (consume/transform value) vs control operators (gate on status).
+[ ] :r / :rr - write / append running value to file
+[ ] :i - read a file into the pipeline mid-chain (read back what :r wrote)
+[ ] :s / :ss - success/failure conditionals, bash && / || semantics:
+    running status passes through skipped segments, chains left-associative
 [-] :: dropped - statements-are-lines + backslash continuation covers it; token stays reserved
+[-] /print dropped - pipeline tail renders implicitly, no literal-sink command needed
 [ ] Get good parsing patterns and predictable behaviors early. This is a wish.
-[ ] Essential redirect and pipe operators
 
 ### v0.3.0 Decision Notes
-- Draft example command
+- Example command (success path)
 ```ptt
-/file roadmap.txt :ai claude Add the green button class from phase 1 to the stylesheet, only output the code. :r styles.css :s \
-/persist styles.css :ss /print "Ruh-Roh!"
+/file styles.css :ai@claude "Only output the corrected CSS" :r styles.css :s /persist styles.css
 ```
-#### Thoughts on syntax:
+#### Thoughts on syntax (see docs/slash-colon-spec.md for full grammar):
 - /command must be on newlines always.
 - Commands are always command -> input -> params
-- :command / operators only use the preceding output as input
+- Data operators only use the preceding output as input; control operators
+  (:s/:ss) gate the next segment on status without altering the value
+- A :s/:ss segment runs a /command fresh (like RHS of && / ||)
 - No globbing or loops to start with - don't want variables or list iteration or arrays or all the BASH boggins just yet.
 - That kind of scripting can be done via combination of actual shell and the -c flag.
 
