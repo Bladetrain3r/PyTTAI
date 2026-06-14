@@ -334,8 +334,15 @@ class ChatController:
 
     @staticmethod
     def render_result(result: CommandResult):
-        """Render a CommandResult: content to stdout, errors to stderr"""
-        if result.success:
+        """Render a CommandResult: content to stdout, errors/notes to stderr.
+
+        NOTHING results keep stdout empty (so pipes stay clean) and print
+        any informational message to stderr.
+        """
+        if result.is_nothing:
+            if result.content:
+                print(result.content, file=sys.stderr)
+        elif result.success:
             if result.format == OutputFormat.DATA:
                 print(json.dumps(result.content, indent=2, default=str))
             elif result.content:
@@ -547,12 +554,17 @@ class ChatController:
             self.render_result(result)
             return True
 
+        # Run the data-operator chain. Stop early on error or on a
+        # nothing-to-action result - don't pipe emptiness into a model.
         for segment in statement.chain:
+            if result.is_nothing:
+                break
             result = self._run_ai_segment(result, segment.provider, segment.prompt)
-            if not result.success:
-                self.render_result(result)
-                return True
-        # Final :ai output already streamed to the client; nothing to re-render
+
+        # A successful final :ai already streamed to the client; only error
+        # or nothing results still need surfacing (nothing -> stderr note).
+        if not result.success or result.is_nothing:
+            self.render_result(result)
         return True
 
     def process_input(self, user_input: str) -> bool:

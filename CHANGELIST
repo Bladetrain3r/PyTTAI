@@ -11,6 +11,10 @@
 [x] All controller outputs as CommandResults
     - Command handlers return CommandResults rendered by one renderer
     - Success content to stdout, errors (with suggestions) to stderr
+    - Three result states: SUCCESS / NOTHING (ran fine, no actionable
+      content) / ERROR. NOTHING keeps stdout clean, note to stderr, and
+      short-circuits data operators (no token spend on emptiness).
+      Drives :s/:ss in 0.3.0; resolves the grep-vs-find success question.
 [X] Dockerfile entrypoint improvements and better startup sample command.
 [x] Improve error handling and debug output
     [x] Provider/API errors surface with provider name instead of failing silently

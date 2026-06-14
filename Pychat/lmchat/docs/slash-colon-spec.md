@@ -26,6 +26,14 @@ Sections are marked **DECIDED** (build against this) or **OPEN**
    produces `{success, format, content | error}`. Operators consume the
    preceding segment's result. This is what makes `:s`/`:ss` and `:r`
    possible.
+5. **Three result states.** A result is one of:
+   - **SUCCESS** - operation ran and produced actionable content.
+   - **NOTHING** - operation ran fine but produced nothing to action
+     (search with no matches, empty file, empty clipboard). `success`
+     is true; `is_nothing` is true.
+   - **ERROR** - the operation itself failed (bad path, provider down).
+   This separates "no result" from "failed," which is what lets
+   conditionals and data operators behave predictably (see §4).
 
 ## 2. Line classification (DECIDED)
 
@@ -126,11 +134,17 @@ Operators fall into two kinds, mirroring the shell's distinction between
 The statement carries a **running result** (the CommandResult of the last
 segment that actually executed). Control operators test its success bool:
 
-- `:s` runs its segment only if the running result succeeded; otherwise
-  the segment is skipped and the (failed) running result **passes
+- `:s` runs its segment only if the running result is **SUCCESS** (ran
+  with content); otherwise skipped, and the running result **passes
   through** unchanged.
-- `:ss` runs its segment only if the running result failed; otherwise
-  skipped, and the (successful) result passes through.
+- `:ss` runs its segment only if the running result is **ERROR**;
+  otherwise skipped, result passes through.
+- **NOTHING falls through both.** A no-result is neither acted on (`:s`
+  wants content) nor recovered from (`:ss` wants a failure). So
+  `/find x :s /persist x :ss /alert` with no match runs neither branch -
+  exactly "nothing found, nothing went wrong." Data operators
+  (`:ai`/`:r`/...) also propagate NOTHING without executing, so a model
+  is never asked to process emptiness.
 
 Because skipped segments preserve status, conditionals chain
 left-associatively exactly as in bash:
@@ -154,11 +168,12 @@ status of the last segment that ran.
 pipeline already renders to the client, so emitting output is implicit
 in the final segment; a literal-message sink is not a core command.
 
-Per-command success definition (what counts as failure for a given
-command - e.g. does `/find` with zero matches fail like `grep` or
-succeed like `find`?) is decided **with each command**, not here. Lean
-for search commands: no match = failure, so `:s` is useful ("if found,
-then...").
+The grep-vs-find question dissolves with three states: a search with no
+matches returns **NOTHING**, not ERROR and not SUCCESS. `:s` (found
+something, act on it) and `:ss` (the search itself broke) both stay
+meaningful and neither misfires on an empty result. Commands choose
+SUCCESS / NOTHING / ERROR for their own outcomes; this is the convention
+they follow.
 
 ### Command invocation forms (DECIDED)
 
