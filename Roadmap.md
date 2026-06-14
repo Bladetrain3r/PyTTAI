@@ -104,14 +104,31 @@ The pivot release: AI use becomes operator-driven.
 ### v0.2.8 - Logging
 A proper logger module in `core`, before the operator surface grows.
 - Replaces ad-hoc `print(..., file=sys.stderr)` with structured, levelled
-  logging. Nothing fancy - syslog-style lines / severities that rsyslog
-  ingests cleanly out of the box.
+  logging on stdlib `logging`. Nothing fancy - clean ISO-8601 (UTC)
+  timestamp + a few flat fields, rsyslog-parsable out of the box.
+- A CommandResult logs as fields: `status` (SUCCESS/NOTHING/ERROR),
+  `code`, `format`, a short `msg`. The result tri-state maps to severity
+  (ERROR -> error, NOTHING/SUCCESS -> info). Example line:
+  `2026-06-14T19:35:22Z ERROR pyttai: status=ERROR code=FILE_NOT_FOUND fmt=error msg="File not found: x"`
+- Default destination a log file (`~/.pyttai/pyttai.log`); optional syslog
+  handler. Config: log level + destination.
 - Retrofit existing flows (provider/stream errors, persist, pipeline
   execution, token recording) to log through it.
-- **Do this pre-0.3.0 deliberately**: wiring logging into the codebase
-  while it's still small is far cheaper than after the operator and
-  utility machinery lands. The stdout-result / stderr-status split stays;
-  logging is the diagnostic channel alongside it.
+- **Do this pre-0.3.0 deliberately**: wiring logging in while the codebase
+  is still small is far cheaper than after the operator and utility
+  machinery lands. The stdout-result / stderr-status split stays; logging
+  is a separate diagnostic channel alongside it.
+
+### v0.2.9 - Tests
+A real `tests/` suite (pytest), after logging so it covers the
+instrumented code too.
+- Fake OpenAI-compatible SSE server fixture - the pattern already used in
+  development - exercises the full streaming path with no real keys.
+- Coverage targets: parser (tokenize / parse_statement / preprocess),
+  CommandResult states + rendering, pipeline (`:ai` stateless, chains,
+  NOTHING short-circuit, lazy `@provider`), `/file` three forms + list
+  input, `/ls`, `/persist` + `/persist@context` + `/restore`, token
+  tracking.
 
 ### v0.3.0 - Initial Operators
 Grammar per the slash-colon spec (decide its OPEN questions first):

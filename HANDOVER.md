@@ -79,8 +79,11 @@ results can carry a plain-text `render` (preferred by renderer + pipes).
 v0.2.6: /find, path-traversal mitigation, /cd /pwd, context preload
 files (per-provider context_files, always loaded incl stateless :ai),
 token estimator + oversized-input guard. v0.2.8: proper core logger
-module (rsyslog-friendly) - DO PRE-0.3.0 while surface is small,
-retrofit existing print-to-stderr flows. v0.3.0: :r/:rr/:i (data) +
+module (stdlib logging; ISO-8601 UTC + flat fields; CommandResult ->
+status/code/format/msg; tri-state maps to severity; file + optional
+syslog) - DO PRE-0.3.0 while surface is small, retrofit existing
+print-to-stderr flows. v0.2.9: pytest suite formalizing the ad-hoc
+fake-SSE-server validation, after logging so it covers instrumented code. v0.3.0: :r/:rr/:i (data) +
 :s/:ss (control, bash &&/||) per spec. README now current (0.2.5).
 v0.4+: BBS referential-memory layer - decisions locked in
 docs/bbs-design.md (USER-only, AI never auto-queries it; @variant verb

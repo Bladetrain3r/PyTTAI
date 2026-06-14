@@ -67,11 +67,31 @@ See docs/slash-colon-spec.md for the operator grammar (all questions resolved).
 
 ## v0.2.8 - Logging
 [ ] Proper logger module in core (replaces ad-hoc print-to-stderr).
-    - Structured, levelled output that rsyslog handles cleanly (syslog-style
-      lines / severity); nothing fancy.
-    - Retrofit existing flows (provider errors, persist, pipeline, token use)
-      to log through it. Do this PRE-0.3.0 while the surface is still small -
-      adding it after the operator machinery grows is far more painful.
+    - Built on stdlib logging. Clean ISO-8601 (UTC) timestamp + a few
+      flat fields, rsyslog-parsable; nothing fancy.
+    - Log a CommandResult as fields, e.g.:
+      2026-06-14T19:35:22Z LEVEL pyttai: status=ERROR code=FILE_NOT_FOUND
+        fmt=error msg="File not found: x"
+      Fields from CommandResult: status (SUCCESS/NOTHING/ERROR), code,
+      format, short msg (error or truncated content).
+    - Result tri-state maps to severity: ERROR->error, NOTHING->info,
+      SUCCESS->info/debug.
+    - Diagnostic channel ONLY - the stdout-result / stderr-status user
+      split is unchanged. Default to a log file (~/.pyttai/pyttai.log);
+      optional syslog handler. Config: log level + destination.
+    - Retrofit existing flows (provider/stream errors, persist, pipeline,
+      token use) to log through it. Do this PRE-0.3.0 while the surface is
+      still small - adding it after the operator machinery grows is harder.
+
+## v0.2.9 - Tests
+[ ] Formalize the ad-hoc validation scripts into a tests/ suite (pytest).
+    - Fake OpenAI-compatible SSE server fixture (the pattern already used
+      in dev) so the full streaming path is covered without real keys.
+    - Cover: parser (tokenize/parse_statement/preprocess), CommandResult
+      states + rendering, pipeline (:ai stateless, chains, NOTHING short-
+      circuit, lazy @provider), /file three forms + list input, /ls,
+      /persist + /persist@context + /restore, token tracking.
+    - Comes AFTER logging so tests exercise the instrumented code too.
 
 ## v0.3.0 - Initial Operators
 Data operators (consume/transform value) vs control operators (gate on status).
