@@ -344,7 +344,10 @@ class ChatController:
                 print(result.content, file=sys.stderr)
         elif result.success:
             if result.format == OutputFormat.DATA:
-                print(json.dumps(result.content, indent=2, default=str))
+                if result.render is not None:
+                    print(result.render)
+                else:
+                    print(json.dumps(result.content, indent=2, default=str))
             elif result.content:
                 print(result.content)
         else:
@@ -471,6 +474,8 @@ class ChatController:
         structure later.
         """
         if result.format == OutputFormat.DATA:
+            if result.render is not None:
+                return result.render
             return json.dumps(result.content, indent=2, default=str)
         return result.content if isinstance(result.content, str) else str(result.content)
 

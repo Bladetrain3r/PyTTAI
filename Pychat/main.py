@@ -16,7 +16,7 @@ except ImportError:
 sys.path.insert(0, str(Path(__file__).parent))
 from lmchat.core.chat import ChatController
 from lmchat.core.parser import preprocess_script
-from lmchat.features import clipboard, file_input
+from lmchat.features import clipboard, file_input, file_ops
 
 
 def main():
@@ -64,6 +64,7 @@ def main():
     # Register feature modules
     chat.register_feature(clipboard)
     chat.register_feature(file_input)
+    chat.register_feature(file_ops)
     
     # Show basic info
     provider = chat.providers.get_current()

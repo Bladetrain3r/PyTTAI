@@ -45,9 +45,14 @@ See docs/slash-colon-spec.md for the operator grammar (all questions resolved).
     discuss a meeting recording in-conversation. See roadmap.
 
 ## v0.2.5 - File Ops Begin
-[ ] /ls command
-[ ] Multiple file handling
-[ ] Logging Improvements
+[x] /ls command - glob patterns (*.py, **/*.log), bare dir lists contents,
+    no match = NOTHING. DATA result with plain-text render so it shows one
+    entry per line and pipes the same way (added CommandResult.render field).
+[x] Multiple file handling - /file ["a", "b"] list input (text files),
+    cat/chat-coupled/pipeline forms, strict unless file_skip_missing.
+    Multi-modal lists (images mixed in) deferred - single image per /file.
+[x] /persist <file> [name] - copy a file to the persistent sessions dir
+[ ] Logging Improvements (still open - token CSV exists; broader logging TBD)
 
 ## v0.2.6 - File Ops Grow
 [ ] /find command

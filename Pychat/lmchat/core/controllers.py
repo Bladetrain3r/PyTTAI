@@ -303,6 +303,61 @@ class FileController:
             suggestion="Language detection based on file extension only"
         )
 
+    @staticmethod
+    def list_entries(pattern: str = "*") -> CommandResult:
+        """List files/directories matching a glob pattern.
+
+        Relative to the current working directory. A bare directory name
+        lists its contents; globs like *.py and **/*.log are supported.
+        No matches -> NOTHING (ran fine, nothing to action).
+        """
+        import os
+        raw = (pattern or "*").strip() or "*"
+
+        if os.path.isabs(raw) and not Path(raw).is_dir():
+            return CommandResult.error(
+                "Absolute glob patterns aren't supported yet",
+                code="LS_ABSOLUTE",
+                suggestion="Use a relative pattern; directory navigation lands in 0.2.6"
+            )
+
+        target = Path(raw)
+        try:
+            if target.is_dir():
+                base = target
+                matches = sorted(target.iterdir())
+            else:
+                base = Path.cwd()
+                matches = sorted(base.glob(raw))
+        except (ValueError, OSError) as e:
+            return CommandResult.error(
+                f"Bad pattern: {e}",
+                code="LS_PATTERN",
+                suggestion="Use globs like *.py or **/*.log"
+            )
+
+        if not matches:
+            return CommandResult.nothing(f"No matches for '{raw}'")
+
+        entries, lines = [], []
+        for p in matches:
+            is_dir = p.is_dir()
+            try:
+                size = None if is_dir else p.stat().st_size
+            except OSError:
+                size = None
+            try:
+                rel = p.relative_to(base)
+            except ValueError:
+                rel = p
+            entries.append({"name": str(rel), "type": "dir" if is_dir else "file", "size": size})
+            lines.append(f"{rel}/" if is_dir else str(rel))
+
+        return CommandResult.success_data(
+            {"base": str(base), "entries": entries},
+            render="\n".join(lines)
+        )
+
 class SessionController:
     """Handles session management"""
     def __init__(self, session_dir: Path):
@@ -318,6 +373,37 @@ class SessionController:
     
     def session_exists(self, name: str) -> bool:
         return self.get_session_path(name).exists()
+
+    def persist_file(self, source: str, name: Optional[str] = None) -> CommandResult:
+        """Copy a file into the persistent sessions directory.
+
+        The explicit-save half of "transient unless persisted": workspace
+        artifacts live only until the session ends unless persisted here.
+        """
+        import shutil
+        src = Path(source)
+        if not src.exists():
+            return CommandResult.error(
+                f"File not found: {source}",
+                code="FILE_NOT_FOUND",
+                suggestion="Check the path"
+            )
+        if not src.is_file():
+            return CommandResult.error(
+                f"Not a file: {source}",
+                code="NOT_A_FILE",
+                suggestion="/persist saves a single file"
+            )
+        dest = self.session_dir / (name or src.name)
+        try:
+            shutil.copy2(src, dest)
+        except OSError as e:
+            return CommandResult.error(
+                f"Could not persist: {e}",
+                code="PERSIST_ERROR",
+                suggestion="Check destination permissions"
+            )
+        return CommandResult.success_text(f"Persisted to {dest}")
 
 class CommandController:
     """Handles command parsing and execution"""

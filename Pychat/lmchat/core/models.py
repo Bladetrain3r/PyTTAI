@@ -21,19 +21,23 @@ class OutputFormat(Enum):
 
 class CommandResult:
     """Standardized result from any command/operation"""
-    def __init__(self, 
+    def __init__(self,
                  success: bool = True,
                  format: OutputFormat = OutputFormat.TEXT,
                  content: Any = None,
                  error: Optional[str] = None,
                  code: Optional[str] = None,
-                 suggestion: Optional[str] = None):
+                 suggestion: Optional[str] = None,
+                 render: Optional[str] = None):
         self.success = success
         self.format = format
         self.content = content
         self.error = error
         self.code = code
         self.suggestion = suggestion
+        # Optional plain-text rendering for DATA results; preferred over
+        # JSON by the renderer and by pipes (spec: "what you saw flows down")
+        self.render = render
     
     def to_dict(self) -> Dict:
         result = {
@@ -70,9 +74,9 @@ class CommandResult:
         return cls(success=True, format=OutputFormat.TEXT, content=text)
     
     @classmethod
-    def success_data(cls, data: Dict) -> 'CommandResult':
-        """Create a successful data result"""
-        return cls(success=True, format=OutputFormat.DATA, content=data)
+    def success_data(cls, data: Dict, render: Optional[str] = None) -> 'CommandResult':
+        """Create a successful data result, with optional plain-text render"""
+        return cls(success=True, format=OutputFormat.DATA, content=data, render=render)
     
     @classmethod
     def error(cls, error: str, code: Optional[str] = None, suggestion: Optional[str] = None) -> 'CommandResult':

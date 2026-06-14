@@ -69,13 +69,17 @@ around 0.4/0.5.
 
 ## Agreed next steps
 
-v0.2.4 is DONE (token tracking, reasoning key, parser, :ai, /file
-three forms - see CHANGELIST). v0.2.5 queue: /ls with globs, /file
-list input via ast.literal_eval (bracket tokenization already in the
-parser; handler currently refuses lists politely), /persist,
-logging improvements. v0.3.0: :r/:rr/:i/:s/:ss per spec.
-Implementation notes for 0.2.4 internals live in TECHNICAL_BRIEF
-"Core Conventions" - read before touching chat.py or parser.py.
+v0.2.4 DONE (token tracking, reasoning key, parser, :ai, /file three
+forms). v0.2.5 mostly DONE: /ls (globs, NOTHING on no-match, DATA
+render field), /file list input (text; multi-modal lists deferred),
+/persist. Still open in 0.2.5: broader logging improvements (token CSV
+exists; general logging TBD). Result model now tri-state
+SUCCESS/NOTHING/ERROR (see CommandResult.nothing + is_nothing) and DATA
+results can carry a plain-text `render` (preferred by renderer + pipes).
+v0.2.6: /find, path-traversal mitigation, /cd /pwd, context preload
+files (per-provider context_files, always loaded incl stateless :ai).
+v0.3.0: :r/:rr/:i (data) + :s/:ss (control, bash &&/||) per spec.
+Implementation conventions live in TECHNICAL_BRIEF "Core Conventions".
 
 ## Testing approach used
 
