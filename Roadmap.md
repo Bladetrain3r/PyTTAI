@@ -68,6 +68,9 @@ The pivot release: AI use becomes operator-driven.
   (`/file ["a.md", "b.py"] compare`), strict on unreadable paths unless
   `file_skip_missing` is set - see spec for grammar
 - `/persist <file> <name>` - explicit save to /sessions
+- `/persist@context [name]` - save the conversation; `/sessions` lists
+  saved contexts, `/restore <name>` loads one (the `@` variant selector
+  generalizes from `:ai@provider`)
 - Logging improvements
 
 ### v0.2.6 - File Ops Grow
@@ -91,6 +94,15 @@ The pivot release: AI use becomes operator-driven.
   - Pairs with the container `PRELOAD_CONTEXT` idea from the SSH phase
 - README refresh: version header and feature list still describe 0.2.2
   (operators, Gemini, env-var keys, /tokenuse all missing)
+- **Token estimator + oversized-input guard**: estimate tokens before
+  sending (cheap chars/4 heuristic by default; real per-provider count
+  where cheap - Anthropic/Gemini count_tokens). When an input (e.g. a
+  big `/file`) exceeds `token_warn_threshold`, act:
+  - Interactive: prompt - proceed / truncate / cancel
+  - Non-interactive: config policy (warn-and-proceed default, or abort)
+    since scripts can't be prompted
+  - Mirrors the existing image auto-downscale precedent (size-based
+    pre-send action) and feeds `/tokenuse` visibility
 
 ### v0.3.0 - Initial Operators
 Grammar per the slash-colon spec (decide its OPEN questions first):

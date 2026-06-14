@@ -52,6 +52,9 @@ See docs/slash-colon-spec.md for the operator grammar (all questions resolved).
     cat/chat-coupled/pipeline forms, strict unless file_skip_missing.
     Multi-modal lists (images mixed in) deferred - single image per /file.
 [x] /persist <file> [name] - copy a file to the persistent sessions dir
+[x] /persist@context [name] - save conversation; /sessions lists, /restore loads.
+    @variant selector generalized to command words (mirrors :ai@provider).
+    Context names basenamed (no sessions-dir escape).
 [ ] Logging Improvements (still open - token CSV exists; broader logging TBD)
 
 ## v0.2.6 - File Ops Grow

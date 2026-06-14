@@ -198,6 +198,23 @@ aimodel: Can you pass the files through so I can confirm XYZ?
 aimodel: I've taken a look and XYZ does apply.
 ```
 
+### Command variants - `@` (DECIDED)
+
+`@` is the language's "which target/flavor" selector. It appears in two
+places, same meaning both times:
+
+- On operators: `:ai@claude` - this operator, via the named provider.
+- On commands: `/persist@context` - this command, in the named variant.
+
+A command variant takes no inline argument of its own (it's a mode
+switch); regular args still follow. `/persist <file>` saves a file;
+`/persist@context [name]` saves the conversation. Unknown variants on a
+command are a clean error from that command's handler.
+
+The retrieval side of saved contexts: `/sessions` lists them,
+`/restore <name>` loads one. Context names are basenamed - they can't
+escape the sessions directory.
+
 ### Multi-file input (DECIDED)
 
 Commands taking file inputs accept either a single bare path or a

@@ -394,7 +394,8 @@ class SessionController:
                 code="NOT_A_FILE",
                 suggestion="/persist saves a single file"
             )
-        dest = self.session_dir / (name or src.name)
+        # Basename the destination so a name can't escape the sessions dir
+        dest = self.session_dir / Path(name or src.name).name
         try:
             shutil.copy2(src, dest)
         except OSError as e:
@@ -423,18 +424,30 @@ class CommandController:
                 self.aliases[alias] = name
     
     def parse_input(self, user_input: str) -> tuple:
-        """Parse user input into command and arguments"""
+        """Parse user input into command and arguments.
+
+        A command word may carry an @variant (e.g. /persist@context),
+        mirroring :ai@provider on operators. The variant is re-attached to
+        the front of args as an @-token so the handler can read it; the
+        command itself dispatches normally.
+        """
         if not user_input.startswith('/'):
             return None, user_input
-        
+
         parts = user_input[1:].split(' ', 1)
-        command = parts[0].lower()
+        head = parts[0].lower()
         args = parts[1] if len(parts) > 1 else ""
-        
+
+        if '@' in head:
+            command, variant = head.split('@', 1)
+            args = f"@{variant} {args}".strip() if variant else args
+        else:
+            command = head
+
         # Check aliases
         if command in self.aliases:
             command = self.aliases[command]
-        
+
         return command, args
     
     def execute_command(self, command: str, args: str) -> tuple:

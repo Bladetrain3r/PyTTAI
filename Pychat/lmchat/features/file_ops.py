@@ -19,11 +19,25 @@ def create_ls_handler(chat_controller):
 def create_persist_handler(chat_controller):
     def handle_persist(args: str):
         parts = args.split()
+
+        # Variant: /persist@context [name] - save the conversation itself
+        if parts and parts[0].startswith('@'):
+            variant = parts[0][1:]
+            if variant == "context":
+                name = parts[1] if len(parts) > 1 else None
+                return chat_controller.persist_context(name)
+            return CommandResult.error(
+                f"Unknown persist variant: @{variant}",
+                code="USAGE",
+                suggestion="Known: @context (save conversation). "
+                           "Plain /persist <file> saves a file."
+            )
+
         if not parts:
             return CommandResult.error(
                 "No file given",
                 code="USAGE",
-                suggestion="Usage: /persist <file> [name]"
+                suggestion="Usage: /persist <file> [name]  or  /persist@context [name]"
             )
         source = parts[0]
         name = parts[1] if len(parts) > 1 else None
@@ -41,5 +55,5 @@ def register_commands(chat_controller):
     chat_controller.commands.register_command(
         "persist",
         create_persist_handler(chat_controller),
-        "Save a file to the persistent sessions directory",
+        "Save a file (/persist <file>) or the conversation (/persist@context)",
     )

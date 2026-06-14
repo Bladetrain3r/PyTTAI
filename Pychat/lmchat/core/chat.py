@@ -172,6 +172,18 @@ class ChatController:
             aliases=["tokens"]
         )
 
+        # Saved-context commands (the retrieval half of /persist@context)
+        self.commands.register_command(
+            "sessions",
+            self._handle_sessions_command,
+            "List saved conversation contexts"
+        )
+        self.commands.register_command(
+            "restore",
+            self._handle_restore_command,
+            "Restore a saved conversation: /restore <name>"
+        )
+
         # Exit commands - returning False from a handler ends the session
         self.commands.register_command(
             "exit",
@@ -277,6 +289,57 @@ class ChatController:
         """Clear conversation history"""
         self.conversation.clear()
         return CommandResult.success_text("Conversation cleared.")
+
+    def persist_context(self, name: Optional[str] = None) -> CommandResult:
+        """Save the current conversation for later retrieval.
+
+        The /persist@context variant. Distinct from /persist <file>, which
+        copies a workspace artifact; this saves the conversation itself.
+        """
+        if not self.conversation.messages:
+            return CommandResult.nothing("No conversation to save")
+        # Basename so a name can't escape the sessions dir
+        safe = Path(name).name if name else datetime.now().strftime("context_%Y%m%d_%H%M%S")
+        if not safe:
+            return CommandResult.error("Invalid context name", code="USAGE")
+        path = self.session.get_session_path(safe)
+        self.conversation.metadata["session_name"] = safe
+        try:
+            self.conversation.save(path)
+        except OSError as e:
+            return CommandResult.error(
+                f"Could not save context: {e}", code="PERSIST_ERROR")
+        return CommandResult.success_text(
+            f"Saved {len(self.conversation.messages)} messages to {path}")
+
+    def _handle_sessions_command(self, args: str) -> CommandResult:
+        """List saved conversation contexts"""
+        names = sorted(self.session.list_sessions())
+        if not names:
+            return CommandResult.nothing("No saved contexts")
+        return CommandResult.success_data(
+            {"sessions": names}, render="\n".join(names))
+
+    def _handle_restore_command(self, args: str) -> CommandResult:
+        """Restore a saved conversation: /restore <name>"""
+        name = args.strip()
+        if not name:
+            return CommandResult.error(
+                "No context name given", code="USAGE",
+                suggestion="Usage: /restore <name>  (see /sessions)")
+        safe = Path(name).name
+        path = self.session.get_session_path(safe)
+        if not path.exists():
+            return CommandResult.error(
+                f"No saved context: {safe}", code="NOT_FOUND",
+                suggestion="List saved contexts with /sessions")
+        try:
+            self.conversation = Conversation.load(path)
+        except Exception as e:
+            return CommandResult.error(
+                f"Could not restore context: {e}", code="RESTORE_ERROR")
+        return CommandResult.success_text(
+            f"Restored {len(self.conversation.messages)} messages from {safe}")
 
     def _handle_tokenuse_command(self, args: str) -> CommandResult:
         """Show per-provider token usage for this session"""
