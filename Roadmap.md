@@ -137,6 +137,24 @@ meeting recording into the conversation for discussion. Provider-style
 config like the LLM providers (local whisper + cloud options), likely
 `:stt@provider` operator form. Plan properly when 0.3.x stabilizes.
 
+### v0.4+ candidate - Referential Memory: the BBS
+A persistent, threaded, explicitly-queried store - "files, but threaded,
+persistent, and cross-session." The long-term referential layer above
+ephemeral conversation and `/persist@context` snapshots. Commands live
+under the existing `@variant` grammar (`/bbs@post`, `/bbs@read`,
+`/bbs@search`) - no parser change needed.
+
+**The locked principle**: the AI never reads or writes the BBS on its
+own. It is a USER tool for retrieve/update/query. `/bbs@search` returns
+titles/ids only (never injects content); `/bbs@read <id>` is the explicit
+pull (the `/file` of the BBS); the user sees what exists, then chooses
+what to send to a model. Every model-bound byte stays explicit - same
+rule as the rest of PyTTAI, NOT an agentic memory the model invokes.
+
+Post-0.3.0 at the earliest. Full locked/deferred decisions, the command
+surface, and what to keep vs strip from the existing core are in
+`Pychat/lmchat/docs/bbs-design.md`.
+
 ## Parked - Needs Its Own Planning Before Any Build
 
 Each of these was in the old Phase 5/6 sweep; they're real ideas but not
@@ -148,7 +166,7 @@ roadmap items until they get a design pass:
 | `/curl`, `/ping`, network utils | Network egress from an AI-adjacent tool needs a security story first |
 | `/json`, `/csv` query tools | Wait until DATA-through-pipes semantics (spec OPEN q2) are settled |
 | SSH server mode / context preloading | Still attractive for the container story; needs auth/session-isolation design |
-| Memory management (`/compress`, context layers) | Owner has separate memory-system experiments planned; don't preempt them |
+| Memory management (`/compress`, context layers) | Separate memory experiments planned; don't preempt them. (The BBS referential layer is now specced - see v0.4+; this row is the *other* experiments.) |
 | `/explain`, `/suggest`, AI-enhanced utils | Revisit after operators prove the composition model |
 | Package/plugin management | Premature before a plugin API exists |
 

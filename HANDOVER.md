@@ -82,7 +82,11 @@ token estimator + oversized-input guard. v0.2.8: proper core logger
 module (rsyslog-friendly) - DO PRE-0.3.0 while surface is small,
 retrofit existing print-to-stderr flows. v0.3.0: :r/:rr/:i (data) +
 :s/:ss (control, bash &&/||) per spec. README now current (0.2.5).
-Implementation conventions live in TECHNICAL_BRIEF "Core Conventions".
+v0.4+: BBS referential-memory layer - decisions locked in
+docs/bbs-design.md (USER-only, AI never auto-queries it; @variant verb
+namespace; @read mirrors /file; clean-room from an existing core, don't
+import the swarm version). Implementation conventions live in
+TECHNICAL_BRIEF "Core Conventions".
 
 ## Testing approach used
 

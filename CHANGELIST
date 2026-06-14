@@ -98,3 +98,18 @@ Data operators (consume/transform value) vs control operators (gate on status).
 - That kind of scripting can be done via combination of actual shell and the -c flag.
 
 ## v0.3.1 - Probably Polish
+
+## v0.4+ - Referential Memory (the BBS)
+Decisions mostly locked; see docs/bbs-design.md. Post-0.3.0 at the earliest.
+[ ] Persistent threaded store: "files, but threaded, persistent, cross-session"
+[ ] Commands under @variant namespace: /bbs@list /bbs@search /bbs@read
+    /bbs@post /bbs@reply /bbs@archive /bbs@pin /bbs@delete
+[ ] LOCKED principle: AI never reads/writes BBS itself - USER tool only.
+    @search returns titles/ids only; @read is the explicit pull (like /file);
+    every model-bound byte stays explicit.
+[ ] @read mirrors /file's three forms (bare / chat-coupled / :ai pipeline)
+[ ] Clean-room reimplement from the existing core: keep filesystem/stdlib/
+    cat-debuggable threads+index+summaries+artifacts; drop roles & swarm caps
+    for v1; defer fork/collapse and :bbs pipeline sinks
+[ ] Cross-platform locking (existing core is fcntl/unix-only)
+[ ] Default root ~/.pyttai/bbs/, container-mountable like /sessions
