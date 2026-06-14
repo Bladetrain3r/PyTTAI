@@ -82,9 +82,10 @@ The pivot release: AI use becomes operator-driven.
     precedence pattern as `reasoning`
   - Read at call time with mtime caching, so editing the file mid-session
     takes effect without restart
-  - Applies to chat-coupled turns; whether stateless `:ai` segments
-    include it is a decision to make (lean: yes for `@provider` - it's
-    part of that provider's persona - but decide before building)
+  - Applies to **every** turn for that provider - chat-coupled AND
+    stateless `:ai`/`:ai@provider` segments. Statelessness is about
+    conversation history, not identity; a provider's preload is part of
+    its persona and always loaded.
   - Preload tokens count on every turn - surface in `/tokenuse` so the
     cost is visible
   - Pairs with the container `PRELOAD_CONTEXT` idea from the SSH phase
