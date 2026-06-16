@@ -65,6 +65,10 @@ See docs/slash-colon-spec.md for the operator grammar (all questions resolved).
     loaded incl stateless :ai. See roadmap design notes.
 [x] README refresh - now reflects current state (commands, operators, providers)
 
+## v0.2.7 - Noninteractive Output handling
+[ ] Launch parameter to suppres non-exceptional stderr output in non-interactive mode
+[ ]  
+
 ## v0.2.8 - Logging
 [ ] Proper logger module in core (replaces ad-hoc print-to-stderr).
     - Built on stdlib logging. Clean ISO-8601 (UTC) timestamp + a few
