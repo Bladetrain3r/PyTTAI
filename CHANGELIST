@@ -67,7 +67,7 @@ See docs/slash-colon-spec.md for the operator grammar (all questions resolved).
 
 ## v0.2.7 - Noninteractive Output handling
 [ ] Launch parameter to suppres non-exceptional stderr output in non-interactive mode
-[ ]  
+[ ] (Bonus) Add provider APIs for GLM/Z.ai and Mistral/Le Chaton Fat (lol)
 
 ## v0.2.8 - Logging
 [ ] Proper logger module in core (replaces ad-hoc print-to-stderr).
