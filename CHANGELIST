@@ -67,6 +67,7 @@ See docs/slash-colon-spec.md for the operator grammar (all questions resolved).
 
 ## v0.2.7 - Noninteractive Output handling
 [ ] Launch parameter to suppres non-exceptional stderr output in non-interactive mode
+[ ] (UI) Currently outputs providertype:body, rather want it to reflect specific config name of provider (e.g. "grok-code" or whatever)
 [ ] (Bonus) Add provider APIs for GLM/Z.ai and Mistral/Le Chaton Fat (lol)
 
 ## v0.2.8 - Logging
