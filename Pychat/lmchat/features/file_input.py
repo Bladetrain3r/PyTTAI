@@ -29,7 +29,7 @@ def _handle_multi(chat_controller, paths, prompt: str):
     blocks = []
     for raw in paths:
         fp = Path(str(raw))
-        res = chat_controller.file.read_file(fp)
+        res = chat_controller.file.read_file(fp, root=chat_controller.workspace_root)
         if not res.success:
             if skip_missing:
                 print(f"Skipping {fp}: {res.error}", file=sys.stderr)
@@ -99,7 +99,7 @@ def create_file_handler(chat_controller):
         file_path = Path(parts[0])
         prompt = parts[1] if len(parts) > 1 else ""
 
-        file_result = chat_controller.file.read_file(file_path)
+        file_result = chat_controller.file.read_file(file_path, root=chat_controller.workspace_root)
         if not file_result.success:
             return file_result
 

@@ -38,7 +38,12 @@ class ChatController:
         # Initialize configuration
         config_path = config_path or (self.app_dir / "config.json")
         self.config = Config(config_path)
-        
+
+        # Workspace root for traversal mitigation. Opt-in standalone (None =
+        # no confinement, current behavior); auto-/workspace in a container.
+        # The app enforces the boundary - it doesn't rely on container mounts.
+        self.workspace_root = self._resolve_workspace_root()
+
         # Set defaults if new config
         if not self.config.data:
             self.config.data = Config.get_default_config()
@@ -345,6 +350,21 @@ class ChatController:
                 f"Could not restore context: {e}", code="RESTORE_ERROR")
         return CommandResult.success_text(
             f"Restored {len(self.conversation.messages)} messages from {safe}")
+
+    def _resolve_workspace_root(self) -> Optional[Path]:
+        """Determine the file-operation boundary.
+
+        Explicit config wins; else in a container default to /workspace;
+        else None (no confinement). Returns an absolute resolved path or None.
+        """
+        import os
+        configured = self.config.get("workspace_root")
+        if configured:
+            return Path(configured).expanduser().resolve()
+        in_container = os.environ.get("PYTTAI_CONTAINER") or os.path.exists("/.dockerenv")
+        if in_container and Path("/workspace").is_dir():
+            return Path("/workspace").resolve()
+        return None
 
     def _read_context_file(self, path: str) -> Optional[str]:
         """Read a context_file, cached by mtime so live edits are picked up

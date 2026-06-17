@@ -101,7 +101,9 @@ top-level), `active_provider`, `max_conversation_length`, `token_log` (default
 true), `track_usage` (default true), `file_skip_missing` (default false),
 `context_file` (list of absolute paths whose contents are appended to
 `system_prompt` - or become the system prompt if none is set; re-read live when
-edited, and applied on every turn including `:ai` pipelines).
+edited, and applied on every turn including `:ai` pipelines), `workspace_root`
+(absolute path; when set, file commands cannot read/write outside it - off by
+default standalone, auto-set to `/workspace` in a container).
 
 Install dependencies (a venv is recommended):
 ```bash
@@ -124,6 +126,7 @@ docker run -it --rm --mount type=bind,src=$(pwd)/sessions,dst=/sessions \
 | `/file <path\|[list]> [prompt]` | `/f`, `/read` | Read a file (or list of files). Bare = show it; with a prompt = send to AI in conversation; with `:ai` = pipeline. |
 | `/paste [prompt]` | `/p`, `/clip` | Send clipboard contents (text or image). |
 | `/ls [pattern]` | `/dir` | List files; globs like `*.py`, `**/*.log`; a bare directory lists its contents. |
+| `/find <pattern> [dir]` | | Recursively find files by name (bare words match as substrings; globs honoured). |
 | `/persist <file> [name]` | | Copy a file into the persistent sessions directory. |
 | `/persist@context [name]` | | Save the current conversation for later retrieval. |
 | `/sessions` | | List saved conversations. |

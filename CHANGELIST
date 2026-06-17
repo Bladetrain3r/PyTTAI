@@ -58,8 +58,12 @@ See docs/slash-colon-spec.md for the operator grammar (all questions resolved).
 [>] Logging -> deferred to 0.2.8 (proper core logger module, not ad-hoc prints)
 
 ## v0.2.6 - File Ops Grow
-[ ] /find command
-[ ] Pre-emptively mitigate use of .. and other traversal vulnerabilities. Don't over-rely on the container.
+[x] /find command - recursive name search (substring or glob), confined to
+    workspace root, no match = NOTHING
+[x] Traversal mitigation: safe_resolve collapses .. / symlinks; optional
+    workspace_root confines all file commands (/file, /ls, /find, /persist src).
+    Opt-in standalone (default None = current behavior), auto-/workspace in a
+    container - app-enforced, doesn't rely on container mounts.
 [x] Context preload: top-level "context_file" (list of absolute paths). Contents
     appended to system_prompt, or replace it if none set. Mtime-cached live reads
     (edits picked up next turn); missing files warn once, non-fatal. Applied on

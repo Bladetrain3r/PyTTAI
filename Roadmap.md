@@ -73,9 +73,13 @@ The pivot release: AI use becomes operator-driven.
   generalizes from `:ai@provider`)
 
 ### v0.2.6 - File Ops Grow
-- `/find`
-- Path traversal mitigation (`..` etc.) - don't over-rely on the container
-- Working directory tracking (`/cd`, `/pwd`)
+- `/find` [DONE] - recursive name search (substring or glob), confined to
+  the workspace root, no match -> NOTHING
+- Path traversal mitigation [DONE] - `safe_resolve` collapses `..`/symlinks;
+  optional `workspace_root` confines all file commands. Opt-in standalone
+  (default off = current behavior), auto-`/workspace` in a container. The
+  app enforces the boundary - it does not rely on container mounts.
+- Working directory tracking (`/cd`, `/pwd`) - deferred to a later 0.2.x
 - **Context preload files** [DONE]: top-level `context_file` config key
   (list of absolute paths) whose contents append to the system prompt -
   like skills, but pre-decided in config rather than model-invoked.
@@ -88,7 +92,8 @@ The pivot release: AI use becomes operator-driven.
   - Preload tokens count on every turn - visible in `/tokenuse`
   - Deferred: per-provider `context_file` blocks (top-level only for now);
     pairs with the container `PRELOAD_CONTEXT` idea from the SSH phase
-- **Token estimator + oversized-input guard**: estimate tokens before
+- **Token estimator + oversized-input guard** (deferred to a later 0.2.x;
+  not in the committed 0.2.6 patch): estimate tokens before
   sending (cheap chars/4 heuristic by default; real per-provider count
   where cheap - Anthropic/Gemini count_tokens). When an input (e.g. a
   big `/file`) exceeds `token_warn_threshold`, act:

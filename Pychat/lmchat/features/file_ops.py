@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-File operations feature - /ls and /persist
+File operations feature - /ls, /find and /persist
 
-These return CommandResults and compose with operators. /ls uses the
-DATA render field so it shows one entry per line (and pipes the same way)
-rather than dumping JSON.
+These return CommandResults and compose with operators. /ls and /find use
+the DATA render field so they show one entry per line (and pipe the same
+way) rather than dumping JSON. All respect the workspace boundary.
 """
 
 from lmchat.core.models import CommandResult
@@ -12,8 +12,23 @@ from lmchat.core.models import CommandResult
 
 def create_ls_handler(chat_controller):
     def handle_ls(args: str):
-        return chat_controller.file.list_entries(args.strip() or "*")
+        return chat_controller.file.list_entries(
+            args.strip() or "*", root=chat_controller.workspace_root)
     return handle_ls
+
+
+def create_find_handler(chat_controller):
+    def handle_find(args: str):
+        parts = args.split(maxsplit=1)
+        if not parts:
+            return CommandResult.error(
+                "No search pattern given", code="USAGE",
+                suggestion="Usage: /find <pattern> [start-dir]")
+        pattern = parts[0]
+        start = parts[1].strip() if len(parts) > 1 else "."
+        return chat_controller.file.find(
+            pattern, start, root=chat_controller.workspace_root)
+    return handle_find
 
 
 def create_persist_handler(chat_controller):
@@ -41,7 +56,8 @@ def create_persist_handler(chat_controller):
             )
         source = parts[0]
         name = parts[1] if len(parts) > 1 else None
-        return chat_controller.session.persist_file(source, name)
+        return chat_controller.session.persist_file(
+            source, name, root=chat_controller.workspace_root)
     return handle_persist
 
 
@@ -51,6 +67,11 @@ def register_commands(chat_controller):
         create_ls_handler(chat_controller),
         "List files/directories (glob patterns: *.py, **/*.log)",
         aliases=["dir"]
+    )
+    chat_controller.commands.register_command(
+        "find",
+        create_find_handler(chat_controller),
+        "Recursively find files by name: /find <pattern> [start-dir]",
     )
     chat_controller.commands.register_command(
         "persist",

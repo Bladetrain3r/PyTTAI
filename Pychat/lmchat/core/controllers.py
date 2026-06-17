@@ -28,6 +28,24 @@ except ImportError:
 
 # APIController has been replaced by the provider system in providers.py
 
+
+def safe_resolve(path, root: Optional[Path] = None):
+    """Resolve a path, collapsing `..` and symlinks. If root is set, ensure
+    the result stays inside it (traversal mitigation - don't over-rely on
+    the container). Returns (resolved_path, error_message); one is always None.
+    """
+    try:
+        resolved = Path(path).expanduser().resolve()
+    except (OSError, RuntimeError) as e:
+        return None, f"Bad path: {e}"
+    if root is not None:
+        try:
+            resolved.relative_to(root)
+        except ValueError:
+            return None, f"Path escapes workspace ({root}): {path}"
+    return resolved, None
+
+
 class ClipboardController:
     """Handles clipboard operations"""
     @staticmethod
@@ -123,9 +141,15 @@ class FileController:
     IMAGE_EXTENSIONS = {'.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp', '.ico', '.tiff'}
     
     @staticmethod
-    def read_file(path: Path) -> CommandResult:
-        """Read file content (text or image)"""
+    def read_file(path: Path, root: Optional[Path] = None) -> CommandResult:
+        """Read file content (text or image). Confined to root if set."""
         try:
+            resolved, err = safe_resolve(path, root)
+            if err:
+                return CommandResult.error(
+                    err, code="PATH_ESCAPE",
+                    suggestion="Stay within the workspace directory")
+            path = resolved
             # Check if path exists
             if not path.exists():
                 return CommandResult.error(
@@ -304,12 +328,34 @@ class FileController:
         )
 
     @staticmethod
-    def list_entries(pattern: str = "*") -> CommandResult:
+    def _entries_result(base: Path, paths: list) -> CommandResult:
+        """Build a DATA result (with plain-text render) from a path list."""
+        entries, lines = [], []
+        for p in paths:
+            is_dir = p.is_dir()
+            try:
+                size = None if is_dir else p.stat().st_size
+            except OSError:
+                size = None
+            try:
+                rel = p.relative_to(base)
+            except ValueError:
+                rel = p
+            entries.append({"name": str(rel), "type": "dir" if is_dir else "file", "size": size})
+            lines.append(f"{rel}/" if is_dir else str(rel))
+        return CommandResult.success_data(
+            {"base": str(base), "entries": entries},
+            render="\n".join(lines)
+        )
+
+    @staticmethod
+    def list_entries(pattern: str = "*", root: Optional[Path] = None) -> CommandResult:
         """List files/directories matching a glob pattern.
 
         Relative to the current working directory. A bare directory name
         lists its contents; globs like *.py and **/*.log are supported.
-        No matches -> NOTHING (ran fine, nothing to action).
+        No matches -> NOTHING (ran fine, nothing to action). Results are
+        confined to root if set.
         """
         import os
         raw = (pattern or "*").strip() or "*"
@@ -324,8 +370,10 @@ class FileController:
         target = Path(raw)
         try:
             if target.is_dir():
-                base = target
-                matches = sorted(target.iterdir())
+                base, err = safe_resolve(target, root)
+                if err:
+                    return CommandResult.error(err, code="PATH_ESCAPE")
+                matches = sorted(base.iterdir())
             else:
                 base = Path.cwd()
                 matches = sorted(base.glob(raw))
@@ -336,27 +384,49 @@ class FileController:
                 suggestion="Use globs like *.py or **/*.log"
             )
 
+        if root is not None:
+            matches = [m for m in matches if safe_resolve(m, root)[1] is None]
+
         if not matches:
             return CommandResult.nothing(f"No matches for '{raw}'")
 
-        entries, lines = [], []
-        for p in matches:
-            is_dir = p.is_dir()
-            try:
-                size = None if is_dir else p.stat().st_size
-            except OSError:
-                size = None
-            try:
-                rel = p.relative_to(base)
-            except ValueError:
-                rel = p
-            entries.append({"name": str(rel), "type": "dir" if is_dir else "file", "size": size})
-            lines.append(f"{rel}/" if is_dir else str(rel))
+        return FileController._entries_result(base, matches)
 
-        return CommandResult.success_data(
-            {"base": str(base), "entries": entries},
-            render="\n".join(lines)
-        )
+    @staticmethod
+    def find(pattern: str, start: str = ".", root: Optional[Path] = None) -> CommandResult:
+        """Recursively find files whose name matches pattern, from start.
+
+        Bare words match as substrings (*word*); glob syntax is honoured
+        as given. No matches -> NOTHING. Confined to root if set.
+        """
+        base, err = safe_resolve(start or ".", root)
+        if err:
+            return CommandResult.error(err, code="PATH_ESCAPE")
+        if not base.is_dir():
+            return CommandResult.error(
+                f"Not a directory: {start}", code="NOT_A_DIR",
+                suggestion="Give a directory to search from (default .)")
+
+        pat = pattern.strip()
+        if not pat:
+            return CommandResult.error(
+                "No search pattern given", code="USAGE",
+                suggestion="Usage: /find <pattern> [start-dir]")
+        # Plain words -> substring match; explicit globs pass through
+        glob_pat = pat if any(c in pat for c in "*?[") else f"*{pat}*"
+
+        try:
+            matches = sorted(p for p in base.rglob(glob_pat) if p.is_file())
+        except (ValueError, OSError) as e:
+            return CommandResult.error(f"Bad pattern: {e}", code="FIND_PATTERN")
+
+        if root is not None:
+            matches = [m for m in matches if safe_resolve(m, root)[1] is None]
+
+        if not matches:
+            return CommandResult.nothing(f"No files matching '{pat}' under {base}")
+
+        return FileController._entries_result(base, matches)
 
 class SessionController:
     """Handles session management"""
@@ -374,14 +444,18 @@ class SessionController:
     def session_exists(self, name: str) -> bool:
         return self.get_session_path(name).exists()
 
-    def persist_file(self, source: str, name: Optional[str] = None) -> CommandResult:
+    def persist_file(self, source: str, name: Optional[str] = None,
+                     root: Optional[Path] = None) -> CommandResult:
         """Copy a file into the persistent sessions directory.
 
         The explicit-save half of "transient unless persisted": workspace
         artifacts live only until the session ends unless persisted here.
+        Source is confined to root if set; dest name is always basenamed.
         """
         import shutil
-        src = Path(source)
+        src, err = safe_resolve(source, root)
+        if err:
+            return CommandResult.error(err, code="PATH_ESCAPE")
         if not src.exists():
             return CommandResult.error(
                 f"File not found: {source}",
