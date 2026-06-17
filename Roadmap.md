@@ -149,6 +149,35 @@ Pure-Python, trivially structured, operator-friendly text helpers only:
 These earn their place because they operate on CommandResult content
 in-pipeline without shelling out. Anything more is the shell's job.
 
+### v0.3.1+ candidate - Config management utility
+A standalone assist for the config lifecycle - **not** full automation,
+and not a replacement for the in-app `/config` (which already does
+runtime show + nested `key=value` edits). This covers what `/config`
+doesn't: getting a config to exist and validating it. Earns its keep for
+new-user setup, testing, and experimental iteration.
+
+Natural scope:
+- `init` - scaffold a starter config from a template (the current
+  auto-created default is bare; this offers providers + key/env-var
+  prompts). Light interactivity, not a wizard maze.
+- `validate <path>` - structural check + provider-type check against
+  `ProviderManager.PROVIDERS` + key-presence (config or env var). Reuses
+  the clear errors providers already raise on missing keys.
+- `doctor` - which providers actually connect (existing `test_connection`),
+  which keys resolve from env. The "why won't my provider load" answer.
+- `list-types` - available provider types and their required/optional fields.
+
+Reuses existing pieces (`Config` load/save, the provider registry,
+`test_connection`), so it's low-coupling - pickup-able in an interim or
+polish window rather than a dedicated milestone.
+
+**Open question:** delivery shape - a subcommand mode on `main.py`
+(`main.py config <verb>`) vs a separate entry (`python -m lmchat.config`).
+Lean subcommand-on-main (one binary, shares the codepaths) - decide at build.
+
+Synergy: feeds the README new-user path (currently hand-write JSON) and
+the 0.2.9 test work (quick throwaway/validated configs).
+
 ### v0.4-0.5 candidate - Speech to Text
 TTS is dropped (was a 0.2.4 bonus; cut for focus). STT is the more
 useful direction: generate transcripts from audio files, or feed a

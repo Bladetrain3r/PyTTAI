@@ -128,6 +128,11 @@ Data operators (consume/transform value) vs control operators (gate on status).
 - That kind of scripting can be done via combination of actual shell and the -c flag.
 
 ## v0.3.1 - Probably Polish
+[ ] Config management utility (standalone assist, not full automation; not a
+    replacement for in-app /config). init / validate / doctor / list-types for
+    new-user setup, testing, experimental iteration. Reuses Config + provider
+    registry + test_connection. Delivery shape TBD (lean: main.py config <verb>).
+    See roadmap for scope + open question.
 
 ## v0.4+ - Referential Memory (the BBS)
 Decisions mostly locked; see docs/bbs-design.md. Post-0.3.0 at the earliest.
