@@ -76,21 +76,18 @@ The pivot release: AI use becomes operator-driven.
 - `/find`
 - Path traversal mitigation (`..` etc.) - don't over-rely on the container
 - Working directory tracking (`/cd`, `/pwd`)
-- **Context preload files**: per-provider config key (e.g.
-  `"context_files": ["~/.pyttai/contexts/myproject.md"]`) whose contents
-  append to the system prompt - like skills, but pre-decided in config
-  rather than model-invoked. Design notes:
-  - Per-provider block and/or top-level (default provider), same
-    precedence pattern as `reasoning`
-  - Read at call time with mtime caching, so editing the file mid-session
-    takes effect without restart
-  - Applies to **every** turn for that provider - chat-coupled AND
-    stateless `:ai`/`:ai@provider` segments. Statelessness is about
-    conversation history, not identity; a provider's preload is part of
-    its persona and always loaded.
-  - Preload tokens count on every turn - surface in `/tokenuse` so the
-    cost is visible
-  - Pairs with the container `PRELOAD_CONTEXT` idea from the SSH phase
+- **Context preload files** [DONE]: top-level `context_file` config key
+  (list of absolute paths) whose contents append to the system prompt -
+  like skills, but pre-decided in config rather than model-invoked.
+  - Appended to `system_prompt`, or becomes the system prompt if none set
+  - mtime-cached live reads - editing a file takes effect next turn, no
+    restart; missing files warn once and are skipped (non-fatal)
+  - Applied on **every** turn including stateless `:ai`/`:ai@provider`:
+    statelessness drops conversation history, not identity. The effective
+    system prompt is the provider's persona and always loaded.
+  - Preload tokens count on every turn - visible in `/tokenuse`
+  - Deferred: per-provider `context_file` blocks (top-level only for now);
+    pairs with the container `PRELOAD_CONTEXT` idea from the SSH phase
 - **Token estimator + oversized-input guard**: estimate tokens before
   sending (cheap chars/4 heuristic by default; real per-provider count
   where cheap - Anthropic/Gemini count_tokens). When an input (e.g. a

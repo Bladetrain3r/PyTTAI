@@ -60,9 +60,10 @@ See docs/slash-colon-spec.md for the operator grammar (all questions resolved).
 ## v0.2.6 - File Ops Grow
 [ ] /find command
 [ ] Pre-emptively mitigate use of .. and other traversal vulnerabilities. Don't over-rely on the container.
-[ ] Context preload files: "context_files" in a provider config block, appended
-    to sysprompt. Like skills but pre-decided. Mtime-cached live reads; always
-    loaded incl stateless :ai. See roadmap design notes.
+[x] Context preload: top-level "context_file" (list of absolute paths). Contents
+    appended to system_prompt, or replace it if none set. Mtime-cached live reads
+    (edits picked up next turn); missing files warn once, non-fatal. Applied on
+    every turn incl stateless :ai (identity, not history). Per-provider deferred.
 [x] README refresh - now reflects current state (commands, operators, providers)
 
 ## v0.2.7 - Noninteractive Output handling

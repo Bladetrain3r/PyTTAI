@@ -60,7 +60,12 @@ class ChatController:
         # Per-session token usage rows; persisted to tokens.csv unless
         # config "token_log" is false
         self.session_usage = []
-        
+
+        # Context preload (config "context_file"): mtime cache + once-per-path
+        # warnings so a missing/edited file is handled without per-turn spam
+        self._context_cache = {}
+        self._context_warned = set()
+
         # Register built-in commands
         self._register_builtin_commands()
     
@@ -341,6 +346,52 @@ class ChatController:
         return CommandResult.success_text(
             f"Restored {len(self.conversation.messages)} messages from {safe}")
 
+    def _read_context_file(self, path: str) -> Optional[str]:
+        """Read a context_file, cached by mtime so live edits are picked up
+        without re-reading unchanged files. Missing/unreadable files warn
+        once (to stderr) and are skipped, not fatal."""
+        p = Path(path).expanduser()
+        try:
+            mtime = p.stat().st_mtime
+        except OSError:
+            if path not in self._context_warned:
+                print(f"Warning: context_file not found: {path}", file=sys.stderr)
+                self._context_warned.add(path)
+            return None
+        cached = self._context_cache.get(path)
+        if cached and cached[0] == mtime:
+            return cached[1]
+        try:
+            content = p.read_text(encoding="utf-8")
+        except OSError as e:
+            if path not in self._context_warned:
+                print(f"Warning: cannot read context_file {path}: {e}", file=sys.stderr)
+                self._context_warned.add(path)
+            return None
+        self._context_cache[path] = (mtime, content)
+        self._context_warned.discard(path)  # readable again - allow future warnings
+        return content
+
+    def _build_system_prompt(self) -> Optional[str]:
+        """Effective system prompt: system_prompt + context_file contents.
+
+        - both set  -> context appended to the base prompt
+        - only one  -> that one
+        - neither   -> None
+        Context files are read fresh (mtime-cached) each turn, so this is the
+        provider's identity and is applied on every turn, including stateless
+        :ai segments (statelessness drops history, not identity).
+        """
+        base = self.config.get("system_prompt") or ""
+        cfiles = self.config.get("context_file") or []
+        if isinstance(cfiles, str):
+            cfiles = [cfiles]
+        parts = [c for c in (self._read_context_file(p) for p in cfiles) if c]
+        context = "\n\n".join(parts)
+        if base and context:
+            return f"{base}\n\n{context}"
+        return base or context or None
+
     def _handle_tokenuse_command(self, args: str) -> CommandResult:
         """Show per-provider token usage for this session"""
         if not self.session_usage:
@@ -436,7 +487,7 @@ class ChatController:
         provider = self.providers.get_current()
 
         messages = []
-        system_prompt = self.config.get("system_prompt")
+        system_prompt = self._build_system_prompt()
         if system_prompt:
             messages.append({"role": "system", "content": system_prompt})
         messages.extend(self.conversation.get_messages_for_api(
@@ -581,7 +632,13 @@ class ChatController:
 
         piped = self._pipe_text(prev)
         content = f"{prompt}\n\n{piped}" if prompt else piped
-        messages = [{"role": "user", "content": content}]
+        # Stateless: no conversation history, but identity (system prompt +
+        # context preload) still applies - per the preload design decision
+        messages = []
+        system_prompt = self._build_system_prompt()
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        messages.append({"role": "user", "content": content})
 
         print(f"\n{provider.name.title()}: ", end="", flush=True)
         response = ""

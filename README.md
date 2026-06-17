@@ -98,7 +98,10 @@ LM Studio. Below is an example with multiple local and cloud providers.
 
 Optional config keys: `reasoning` (`off`/`low`/`medium`/`high`, per provider or
 top-level), `active_provider`, `max_conversation_length`, `token_log` (default
-true), `track_usage` (default true), `file_skip_missing` (default false).
+true), `track_usage` (default true), `file_skip_missing` (default false),
+`context_file` (list of absolute paths whose contents are appended to
+`system_prompt` - or become the system prompt if none is set; re-read live when
+edited, and applied on every turn including `:ai` pipelines).
 
 Install dependencies (a venv is recommended):
 ```bash

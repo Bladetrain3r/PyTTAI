@@ -76,9 +76,12 @@ render field), /file list input (text; multi-modal lists deferred),
 exists; general logging TBD). Result model now tri-state
 SUCCESS/NOTHING/ERROR (see CommandResult.nothing + is_nothing) and DATA
 results can carry a plain-text `render` (preferred by renderer + pipes).
-v0.2.6: /find, path-traversal mitigation, /cd /pwd, context preload
-files (per-provider context_files, always loaded incl stateless :ai),
-token estimator + oversized-input guard. v0.2.8: proper core logger
+v0.2.6: context preload DONE (top-level context_file list, appended to/
+replacing system_prompt, mtime-cached, applied incl stateless :ai via
+_build_system_prompt). Remaining: /find, path-traversal mitigation,
+/cd /pwd, token estimator + oversized-input guard. (0.2.7 output
+handling - quiet flag, provider label = config name not type - also
+pending.) v0.2.8: proper core logger
 module (stdlib logging; ISO-8601 UTC + flat fields; CommandResult ->
 status/code/format/msg; tri-state maps to severity; file + optional
 syslog) - DO PRE-0.3.0 while surface is small, retrofit existing
