@@ -178,6 +178,41 @@ Lean subcommand-on-main (one binary, shares the codepaths) - decide at build.
 Synergy: feeds the README new-user path (currently hand-write JSON) and
 the 0.2.9 test work (quick throwaway/validated configs).
 
+### v0.3.2-0.3.3 candidate - Sequai (the tool surface / action layer)
+A slash command (`/sequai@model "goal"`) that asks a model to produce a
+**sequence of PyTTAI commands from a bounded list** - the layer at which
+an LLM can recommend or drive action *within a fence*, instead of emitting
+raw shell. Distilled from the ML-Extras MLAgent pattern (LLM constrained to
+numbered menu selections); reimplement the idea, the ML codebases stay
+separate.
+
+Why it fits PyTTAI cleanly:
+- The bounded list is **the command registry** (`CommandController`), which
+  already self-describes via `get_help()`. No separate menu file needed.
+- Sequai's output is a PyTTAI statement sequence - effectively an NL -> `.ptt`
+  generator. The **existing parser is the fence**: any off-registry command
+  fails as "unknown command" before execution. No new execution/security
+  path to build.
+
+Principle reconciliation (this is the inverse of the BBS's "AI never acts"):
+AI proposing actions stays consistent with "AI is explicit" via three locks -
+(1) explicit invocation, (2) **recommend-first** (the sequence is shown for
+review; running it is a separate explicit step), (3) bounded vocabulary, no
+raw shell. Auto-execute is the opt-in, clearly-riskier mode.
+
+Open questions to pin before building:
+- **Loop semantics**: one-shot + validation-retry (re-ask on off-menu output)
+  vs a true observe-act loop (run step, feed result back, generate next). Lean
+  one-shot-then-review first; observe-act as a later opt-in.
+- **Execute model**: review-then-run default; auto-run opt-in.
+- **Action set**: full registry vs a curated safe subset.
+
+Deferred further: Magic Launcher / MLMenu proper - a GUI launcher driven by
+vision + cursor/keyboard models. Inline text-bounded (command-registry)
+version first; it needs no vision models. Post-operators target so there's a
+rich-enough action vocabulary to be worth generating. Worth a full design doc
+(like bbs-design.md) when locking.
+
 ### v0.4-0.5 candidate - Speech to Text
 TTS is dropped (was a 0.2.4 bonus; cut for focus). STT is the more
 useful direction: generate transcripts from audio files, or feed a

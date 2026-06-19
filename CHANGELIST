@@ -134,6 +134,14 @@ Data operators (consume/transform value) vs control operators (gate on status).
     registry + test_connection. Delivery shape TBD (lean: main.py config <verb>).
     See roadmap for scope + open question.
 
+## v0.3.2-0.3.3 - Sequai (tool surface / action layer)
+[ ] /sequai@model "goal" - model produces a bounded sequence of PyTTAI commands
+    (the command registry IS the bounded list; parser is the fence). NL -> .ptt.
+    Inverse of the BBS (AI proposes actions) - kept safe by: explicit invocation,
+    recommend-first (review before run), bounded vocab/no raw shell.
+    Open: loop semantics (one-shot+retry vs observe-act), auto-run opt-in,
+    action subset. Magic Launcher/vision-driven version deferred. See roadmap.
+
 ## v0.4+ - Referential Memory (the BBS)
 Decisions mostly locked; see docs/bbs-design.md. Post-0.3.0 at the earliest.
 [ ] Persistent threaded store: "files, but threaded, persistent, cross-session"

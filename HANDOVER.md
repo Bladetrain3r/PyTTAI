@@ -89,10 +89,17 @@ syslog) - DO PRE-0.3.0 while surface is small, retrofit existing
 print-to-stderr flows. v0.2.9: pytest suite formalizing the ad-hoc
 fake-SSE-server validation, after logging so it covers instrumented code. v0.3.0: :r/:rr/:i (data) +
 :s/:ss (control, bash &&/||) per spec. README now current (0.2.5).
-v0.4+: BBS referential-memory layer - decisions locked in
-docs/bbs-design.md (USER-only, AI never auto-queries it; @variant verb
-namespace; @read mirrors /file; clean-room from an existing core, don't
-import the swarm version). Implementation conventions live in
+v0.3.1+: config management utility (init/validate/doctor/list-types).
+v0.3.2-0.3.3: Sequai - /sequai@model generates a bounded sequence of
+PyTTAI commands (registry = bounded list, parser = fence; NL -> .ptt).
+The AI-proposes-actions inverse of the BBS; kept safe by explicit
+invocation + recommend-first + bounded vocab. Open: loop semantics
+(one-shot vs observe-act). Distilled from ML-Extras MLAgent; don't
+import. Worth its own design doc when locking. v0.4+: BBS
+referential-memory layer - decisions locked in docs/bbs-design.md
+(USER-only, AI never auto-queries it; @variant verb namespace; @read
+mirrors /file; clean-room from an existing core, don't import the swarm
+version). Implementation conventions live in
 TECHNICAL_BRIEF "Core Conventions".
 
 ## Testing approach used
