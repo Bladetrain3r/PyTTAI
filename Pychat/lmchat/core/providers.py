@@ -180,6 +180,44 @@ class OllamaProvider(OpenAICompatibleProvider):
         super().__init__(config)
         self.name = "ollama"
 
+    def stream_completion(self, messages, **kwargs):
+        import httpx
+        import json
+        self.last_usage = None
+        base_url = self.base_url
+        if base_url.endswith("/v1"):
+            base_url = base_url[:-3]
+        url = base_url + "/api/chat"
+        body = {
+            "model": kwargs.get("model", self.model),
+            "messages": messages,
+            "stream": True,
+            "options": {
+                "num_ctx": self.config.get("num_ctx", 8192),
+                "num_predict": kwargs.get("max_tokens", self.config.get("max_tokens", 4096)),
+            }
+        }
+        temperature = kwargs.get("temperature", self.config.get("temperature"))
+        if temperature is not None:
+            body["options"]["temperature"] = temperature
+        with httpx.Client(timeout=self.timeout) as client:
+            with client.stream("POST", url, json=body) as response:
+                for line in response.iter_lines():
+                    if not line:
+                        continue
+                    try:
+                        obj = json.loads(line)
+                    except json.JSONDecodeError:
+                        continue
+                    if "message" in obj and "content" in obj["message"]:
+                        yield obj["message"]["content"]
+                    if obj.get("done"):
+                        self.last_usage = {
+                            "input": obj.get("prompt_eval_count", 0),
+                            "output": obj.get("eval_count", 0),
+                        }
+                        break
+
 
 class OpenAIProvider(OpenAICompatibleProvider):
     """OpenAI GPT provider"""
