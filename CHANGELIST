@@ -11,6 +11,10 @@
 [x] All controller outputs as CommandResults
     - Command handlers return CommandResults rendered by one renderer
     - Success content to stdout, errors (with suggestions) to stderr
+    - Three result states: SUCCESS / NOTHING (ran fine, no actionable
+      content) / ERROR. NOTHING keeps stdout clean, note to stderr, and
+      short-circuits data operators (no token spend on emptiness).
+      Drives :s/:ss in 0.3.0; resolves the grep-vs-find success question.
 [X] Dockerfile entrypoint improvements and better startup sample command.
 [x] Improve error handling and debug output
     [x] Provider/API errors surface with provider name instead of failing silently
@@ -41,33 +45,114 @@ See docs/slash-colon-spec.md for the operator grammar (all questions resolved).
     discuss a meeting recording in-conversation. See roadmap.
 
 ## v0.2.5 - File Ops Begin
-[ ] /ls command
-[ ] Multiple file handling
-[ ] Logging Improvements
+[x] /ls command - glob patterns (*.py, **/*.log), bare dir lists contents,
+    no match = NOTHING. DATA result with plain-text render so it shows one
+    entry per line and pipes the same way (added CommandResult.render field).
+[x] Multiple file handling - /file ["a", "b"] list input (text files),
+    cat/chat-coupled/pipeline forms, strict unless file_skip_missing.
+    Multi-modal lists (images mixed in) deferred - single image per /file.
+[x] /persist <file> [name] - copy a file to the persistent sessions dir
+[x] /persist@context [name] - save conversation; /sessions lists, /restore loads.
+    @variant selector generalized to command words (mirrors :ai@provider).
+    Context names basenamed (no sessions-dir escape).
+[>] Logging -> deferred to 0.2.8 (proper core logger module, not ad-hoc prints)
 
 ## v0.2.6 - File Ops Grow
-[ ] /find command
-[ ] Pre-emptively mitigate use of .. and other traversal vulnerabilities. Don't over-rely on the container.
+[x] /find command - recursive name search (substring or glob), confined to
+    workspace root, no match = NOTHING
+[x] Traversal mitigation: safe_resolve collapses .. / symlinks; optional
+    workspace_root confines all file commands (/file, /ls, /find, /persist src).
+    Opt-in standalone (default None = current behavior), auto-/workspace in a
+    container - app-enforced, doesn't rely on container mounts.
+[x] Context preload: top-level "context_file" (list of absolute paths). Contents
+    appended to system_prompt, or replace it if none set. Mtime-cached live reads
+    (edits picked up next turn); missing files warn once, non-fatal. Applied on
+    every turn incl stateless :ai (identity, not history). Per-provider deferred.
+[x] README refresh - now reflects current state (commands, operators, providers)
+
+## v0.2.7 - Noninteractive Output handling
+[ ] Launch parameter to suppres non-exceptional stderr output in non-interactive mode
+[ ] (UI) Currently outputs providertype:body, rather want it to reflect specific config name of provider (e.g. "grok-code" or whatever)
+[ ] (Bonus) Add provider APIs for GLM/Z.ai and Mistral/Le Chaton Fat (lol)
+
+## v0.2.8 - Logging
+[ ] Proper logger module in core (replaces ad-hoc print-to-stderr).
+    - Built on stdlib logging. Clean ISO-8601 (UTC) timestamp + a few
+      flat fields, rsyslog-parsable; nothing fancy.
+    - Log a CommandResult as fields, e.g.:
+      2026-06-14T19:35:22Z LEVEL pyttai: status=ERROR code=FILE_NOT_FOUND
+        fmt=error msg="File not found: x"
+      Fields from CommandResult: status (SUCCESS/NOTHING/ERROR), code,
+      format, short msg (error or truncated content).
+    - Result tri-state maps to severity: ERROR->error, NOTHING->info,
+      SUCCESS->info/debug.
+    - Diagnostic channel ONLY - the stdout-result / stderr-status user
+      split is unchanged. Default to a log file (~/.pyttai/pyttai.log);
+      optional syslog handler. Config: log level + destination.
+    - Retrofit existing flows (provider/stream errors, persist, pipeline,
+      token use) to log through it. Do this PRE-0.3.0 while the surface is
+      still small - adding it after the operator machinery grows is harder.
+
+## v0.2.9 - Tests
+[ ] Formalize the ad-hoc validation scripts into a tests/ suite (pytest).
+    - Fake OpenAI-compatible SSE server fixture (the pattern already used
+      in dev) so the full streaming path is covered without real keys.
+    - Cover: parser (tokenize/parse_statement/preprocess), CommandResult
+      states + rendering, pipeline (:ai stateless, chains, NOTHING short-
+      circuit, lazy @provider), /file three forms + list input, /ls,
+      /persist + /persist@context + /restore, token tracking.
+    - Comes AFTER logging so tests exercise the instrumented code too.
 
 ## v0.3.0 - Initial Operators
-[ ] :r operator for the ability to write files
-[ ] :i operator supplementing /file command
-[ ] :s and :ss success and failure operators
+Data operators (consume/transform value) vs control operators (gate on status).
+[ ] :r / :rr - write / append running value to file
+[ ] :i - read a file into the pipeline mid-chain (read back what :r wrote)
+[ ] :s / :ss - success/failure conditionals, bash && / || semantics:
+    running status passes through skipped segments, chains left-associative
 [-] :: dropped - statements-are-lines + backslash continuation covers it; token stays reserved
+[-] /print dropped - pipeline tail renders implicitly, no literal-sink command needed
 [ ] Get good parsing patterns and predictable behaviors early. This is a wish.
-[ ] Essential redirect and pipe operators
 
 ### v0.3.0 Decision Notes
-- Draft example command
+- Example command (success path)
 ```ptt
-/file roadmap.txt :ai claude Add the green button class from phase 1 to the stylesheet, only output the code. :r styles.css :s \
-/persist styles.css :ss /print "Ruh-Roh!"
+/file styles.css :ai@claude "Only output the corrected CSS" :r styles.css :s /persist styles.css
 ```
-#### Thoughts on syntax:
+#### Thoughts on syntax (see docs/slash-colon-spec.md for full grammar):
 - /command must be on newlines always.
 - Commands are always command -> input -> params
-- :command / operators only use the preceding output as input
+- Data operators only use the preceding output as input; control operators
+  (:s/:ss) gate the next segment on status without altering the value
+- A :s/:ss segment runs a /command fresh (like RHS of && / ||)
 - No globbing or loops to start with - don't want variables or list iteration or arrays or all the BASH boggins just yet.
 - That kind of scripting can be done via combination of actual shell and the -c flag.
 
 ## v0.3.1 - Probably Polish
+[ ] Config management utility (standalone assist, not full automation; not a
+    replacement for in-app /config). init / validate / doctor / list-types for
+    new-user setup, testing, experimental iteration. Reuses Config + provider
+    registry + test_connection. Delivery shape TBD (lean: main.py config <verb>).
+    See roadmap for scope + open question.
+
+## v0.3.2-0.3.3 - Sequai (tool surface / action layer)
+[ ] /sequai@model "goal" - model produces a bounded sequence of PyTTAI commands
+    (the command registry IS the bounded list; parser is the fence). NL -> .ptt.
+    Inverse of the BBS (AI proposes actions) - kept safe by: explicit invocation,
+    recommend-first (review before run), bounded vocab/no raw shell.
+    Open: loop semantics (one-shot+retry vs observe-act), auto-run opt-in,
+    action subset. Magic Launcher/vision-driven version deferred. See roadmap.
+
+## v0.4+ - Referential Memory (the BBS)
+Decisions mostly locked; see docs/bbs-design.md. Post-0.3.0 at the earliest.
+[ ] Persistent threaded store: "files, but threaded, persistent, cross-session"
+[ ] Commands under @variant namespace: /bbs@list /bbs@search /bbs@read
+    /bbs@post /bbs@reply /bbs@archive /bbs@pin /bbs@delete
+[ ] LOCKED principle: AI never reads/writes BBS itself - USER tool only.
+    @search returns titles/ids only; @read is the explicit pull (like /file);
+    every model-bound byte stays explicit.
+[ ] @read mirrors /file's three forms (bare / chat-coupled / :ai pipeline)
+[ ] Clean-room reimplement from the existing core: keep filesystem/stdlib/
+    cat-debuggable threads+index+summaries+artifacts; drop roles & swarm caps
+    for v1; defer fork/collapse and :bbs pipeline sinks
+[ ] Cross-platform locking (existing core is fcntl/unix-only)
+[ ] Default root ~/.pyttai/bbs/, container-mountable like /sessions

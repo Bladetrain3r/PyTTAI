@@ -38,7 +38,12 @@ class ChatController:
         # Initialize configuration
         config_path = config_path or (self.app_dir / "config.json")
         self.config = Config(config_path)
-        
+
+        # Workspace root for traversal mitigation. Opt-in standalone (None =
+        # no confinement, current behavior); auto-/workspace in a container.
+        # The app enforces the boundary - it doesn't rely on container mounts.
+        self.workspace_root = self._resolve_workspace_root()
+
         # Set defaults if new config
         if not self.config.data:
             self.config.data = Config.get_default_config()
@@ -60,7 +65,12 @@ class ChatController:
         # Per-session token usage rows; persisted to tokens.csv unless
         # config "token_log" is false
         self.session_usage = []
-        
+
+        # Context preload (config "context_file"): mtime cache + once-per-path
+        # warnings so a missing/edited file is handled without per-turn spam
+        self._context_cache = {}
+        self._context_warned = set()
+
         # Register built-in commands
         self._register_builtin_commands()
     
@@ -172,6 +182,18 @@ class ChatController:
             aliases=["tokens"]
         )
 
+        # Saved-context commands (the retrieval half of /persist@context)
+        self.commands.register_command(
+            "sessions",
+            self._handle_sessions_command,
+            "List saved conversation contexts"
+        )
+        self.commands.register_command(
+            "restore",
+            self._handle_restore_command,
+            "Restore a saved conversation: /restore <name>"
+        )
+
         # Exit commands - returning False from a handler ends the session
         self.commands.register_command(
             "exit",
@@ -278,6 +300,118 @@ class ChatController:
         self.conversation.clear()
         return CommandResult.success_text("Conversation cleared.")
 
+    def persist_context(self, name: Optional[str] = None) -> CommandResult:
+        """Save the current conversation for later retrieval.
+
+        The /persist@context variant. Distinct from /persist <file>, which
+        copies a workspace artifact; this saves the conversation itself.
+        """
+        if not self.conversation.messages:
+            return CommandResult.nothing("No conversation to save")
+        # Basename so a name can't escape the sessions dir
+        safe = Path(name).name if name else datetime.now().strftime("context_%Y%m%d_%H%M%S")
+        if not safe:
+            return CommandResult.error("Invalid context name", code="USAGE")
+        path = self.session.get_session_path(safe)
+        self.conversation.metadata["session_name"] = safe
+        try:
+            self.conversation.save(path)
+        except OSError as e:
+            return CommandResult.error(
+                f"Could not save context: {e}", code="PERSIST_ERROR")
+        return CommandResult.success_text(
+            f"Saved {len(self.conversation.messages)} messages to {path}")
+
+    def _handle_sessions_command(self, args: str) -> CommandResult:
+        """List saved conversation contexts"""
+        names = sorted(self.session.list_sessions())
+        if not names:
+            return CommandResult.nothing("No saved contexts")
+        return CommandResult.success_data(
+            {"sessions": names}, render="\n".join(names))
+
+    def _handle_restore_command(self, args: str) -> CommandResult:
+        """Restore a saved conversation: /restore <name>"""
+        name = args.strip()
+        if not name:
+            return CommandResult.error(
+                "No context name given", code="USAGE",
+                suggestion="Usage: /restore <name>  (see /sessions)")
+        safe = Path(name).name
+        path = self.session.get_session_path(safe)
+        if not path.exists():
+            return CommandResult.error(
+                f"No saved context: {safe}", code="NOT_FOUND",
+                suggestion="List saved contexts with /sessions")
+        try:
+            self.conversation = Conversation.load(path)
+        except Exception as e:
+            return CommandResult.error(
+                f"Could not restore context: {e}", code="RESTORE_ERROR")
+        return CommandResult.success_text(
+            f"Restored {len(self.conversation.messages)} messages from {safe}")
+
+    def _resolve_workspace_root(self) -> Optional[Path]:
+        """Determine the file-operation boundary.
+
+        Explicit config wins; else in a container default to /workspace;
+        else None (no confinement). Returns an absolute resolved path or None.
+        """
+        import os
+        configured = self.config.get("workspace_root")
+        if configured:
+            return Path(configured).expanduser().resolve()
+        in_container = os.environ.get("PYTTAI_CONTAINER") or os.path.exists("/.dockerenv")
+        if in_container and Path("/workspace").is_dir():
+            return Path("/workspace").resolve()
+        return None
+
+    def _read_context_file(self, path: str) -> Optional[str]:
+        """Read a context_file, cached by mtime so live edits are picked up
+        without re-reading unchanged files. Missing/unreadable files warn
+        once (to stderr) and are skipped, not fatal."""
+        p = Path(path).expanduser()
+        try:
+            mtime = p.stat().st_mtime
+        except OSError:
+            if path not in self._context_warned:
+                print(f"Warning: context_file not found: {path}", file=sys.stderr)
+                self._context_warned.add(path)
+            return None
+        cached = self._context_cache.get(path)
+        if cached and cached[0] == mtime:
+            return cached[1]
+        try:
+            content = p.read_text(encoding="utf-8")
+        except OSError as e:
+            if path not in self._context_warned:
+                print(f"Warning: cannot read context_file {path}: {e}", file=sys.stderr)
+                self._context_warned.add(path)
+            return None
+        self._context_cache[path] = (mtime, content)
+        self._context_warned.discard(path)  # readable again - allow future warnings
+        return content
+
+    def _build_system_prompt(self) -> Optional[str]:
+        """Effective system prompt: system_prompt + context_file contents.
+
+        - both set  -> context appended to the base prompt
+        - only one  -> that one
+        - neither   -> None
+        Context files are read fresh (mtime-cached) each turn, so this is the
+        provider's identity and is applied on every turn, including stateless
+        :ai segments (statelessness drops history, not identity).
+        """
+        base = self.config.get("system_prompt") or ""
+        cfiles = self.config.get("context_file") or []
+        if isinstance(cfiles, str):
+            cfiles = [cfiles]
+        parts = [c for c in (self._read_context_file(p) for p in cfiles) if c]
+        context = "\n\n".join(parts)
+        if base and context:
+            return f"{base}\n\n{context}"
+        return base or context or None
+
     def _handle_tokenuse_command(self, args: str) -> CommandResult:
         """Show per-provider token usage for this session"""
         if not self.session_usage:
@@ -334,10 +468,20 @@ class ChatController:
 
     @staticmethod
     def render_result(result: CommandResult):
-        """Render a CommandResult: content to stdout, errors to stderr"""
-        if result.success:
+        """Render a CommandResult: content to stdout, errors/notes to stderr.
+
+        NOTHING results keep stdout empty (so pipes stay clean) and print
+        any informational message to stderr.
+        """
+        if result.is_nothing:
+            if result.content:
+                print(result.content, file=sys.stderr)
+        elif result.success:
             if result.format == OutputFormat.DATA:
-                print(json.dumps(result.content, indent=2, default=str))
+                if result.render is not None:
+                    print(result.render)
+                else:
+                    print(json.dumps(result.content, indent=2, default=str))
             elif result.content:
                 print(result.content)
         else:
@@ -363,7 +507,7 @@ class ChatController:
         provider = self.providers.get_current()
 
         messages = []
-        system_prompt = self.config.get("system_prompt")
+        system_prompt = self._build_system_prompt()
         if system_prompt:
             messages.append({"role": "system", "content": system_prompt})
         messages.extend(self.conversation.get_messages_for_api(
@@ -464,6 +608,8 @@ class ChatController:
         structure later.
         """
         if result.format == OutputFormat.DATA:
+            if result.render is not None:
+                return result.render
             return json.dumps(result.content, indent=2, default=str)
         return result.content if isinstance(result.content, str) else str(result.content)
 
@@ -506,7 +652,13 @@ class ChatController:
 
         piped = self._pipe_text(prev)
         content = f"{prompt}\n\n{piped}" if prompt else piped
-        messages = [{"role": "user", "content": content}]
+        # Stateless: no conversation history, but identity (system prompt +
+        # context preload) still applies - per the preload design decision
+        messages = []
+        system_prompt = self._build_system_prompt()
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        messages.append({"role": "user", "content": content})
 
         print(f"\n{provider.name.title()}: ", end="", flush=True)
         response = ""
@@ -547,12 +699,17 @@ class ChatController:
             self.render_result(result)
             return True
 
+        # Run the data-operator chain. Stop early on error or on a
+        # nothing-to-action result - don't pipe emptiness into a model.
         for segment in statement.chain:
+            if result.is_nothing:
+                break
             result = self._run_ai_segment(result, segment.provider, segment.prompt)
-            if not result.success:
-                self.render_result(result)
-                return True
-        # Final :ai output already streamed to the client; nothing to re-render
+
+        # A successful final :ai already streamed to the client; only error
+        # or nothing results still need surfacing (nothing -> stderr note).
+        if not result.success or result.is_nothing:
+            self.render_result(result)
         return True
 
     def process_input(self, user_input: str) -> bool:

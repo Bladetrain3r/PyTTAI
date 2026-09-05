@@ -69,13 +69,38 @@ around 0.4/0.5.
 
 ## Agreed next steps
 
-v0.2.4 is DONE (token tracking, reasoning key, parser, :ai, /file
-three forms - see CHANGELIST). v0.2.5 queue: /ls with globs, /file
-list input via ast.literal_eval (bracket tokenization already in the
-parser; handler currently refuses lists politely), /persist,
-logging improvements. v0.3.0: :r/:rr/:i/:s/:ss per spec.
-Implementation notes for 0.2.4 internals live in TECHNICAL_BRIEF
-"Core Conventions" - read before touching chat.py or parser.py.
+v0.2.4 DONE (token tracking, reasoning key, parser, :ai, /file three
+forms). v0.2.5 mostly DONE: /ls (globs, NOTHING on no-match, DATA
+render field), /file list input (text; multi-modal lists deferred),
+/persist. Still open in 0.2.5: broader logging improvements (token CSV
+exists; general logging TBD). Result model now tri-state
+SUCCESS/NOTHING/ERROR (see CommandResult.nothing + is_nothing) and DATA
+results can carry a plain-text `render` (preferred by renderer + pipes).
+v0.2.6 committed patch DONE: context preload (context_file), /find,
+traversal mitigation (safe_resolve + optional workspace_root, opt-in
+standalone / auto-/workspace in container). Deferred to a later 0.2.x:
+/cd /pwd, token estimator. NEXT: 0.2.7 output handling - quiet flag for
+non-exceptional stderr, and provider label should show the config name
+(e.g. "grok") not the type ("xai"); the label is on STDOUT today and
+likely should move to stderr (status not content). v0.2.8: proper core logger
+module (stdlib logging; ISO-8601 UTC + flat fields; CommandResult ->
+status/code/format/msg; tri-state maps to severity; file + optional
+syslog) - DO PRE-0.3.0 while surface is small, retrofit existing
+print-to-stderr flows. v0.2.9: pytest suite formalizing the ad-hoc
+fake-SSE-server validation, after logging so it covers instrumented code. v0.3.0: :r/:rr/:i (data) +
+:s/:ss (control, bash &&/||) per spec. README now current (0.2.5).
+v0.3.1+: config management utility (init/validate/doctor/list-types).
+v0.3.2-0.3.3: Sequai - /sequai@model generates a bounded sequence of
+PyTTAI commands (registry = bounded list, parser = fence; NL -> .ptt).
+The AI-proposes-actions inverse of the BBS; kept safe by explicit
+invocation + recommend-first + bounded vocab. Open: loop semantics
+(one-shot vs observe-act). Distilled from ML-Extras MLAgent; don't
+import. Worth its own design doc when locking. v0.4+: BBS
+referential-memory layer - decisions locked in docs/bbs-design.md
+(USER-only, AI never auto-queries it; @variant verb namespace; @read
+mirrors /file; clean-room from an existing core, don't import the swarm
+version). Implementation conventions live in
+TECHNICAL_BRIEF "Core Conventions".
 
 ## Testing approach used
 

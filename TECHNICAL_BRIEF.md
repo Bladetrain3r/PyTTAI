@@ -32,7 +32,8 @@ Pychat/
     │   └── models.py           CommandResult, Conversation, Message, Config
     ├── features/               Plugin modules; register_commands(chat)
     │   ├── clipboard.py        /paste (text + image clipboard)
-    │   └── file_input.py       /file (text + vision)
+    │   ├── file_input.py       /file (text + vision + list input)
+    │   └── file_ops.py         /ls (glob), /persist
     ├── config/                 config_example.json
     └── docs/                   Spec, reference docs, archived roadmaps
 ```
