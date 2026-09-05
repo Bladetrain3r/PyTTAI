@@ -19,8 +19,33 @@ from lmchat.core.parser import preprocess_script
 from lmchat.features import clipboard, file_input, file_ops
 
 
+def _run_config(argv):
+    """`main.py config <verb>` - config lifecycle tools (doctor).
+
+    doctor/validate: structural check of ~/.pyttai/config.json against the
+    provider registry and key presence (config or env). Exit 1 if any error.
+    """
+    from pathlib import Path
+    from lmchat.core.models import Config
+    from lmchat.core.providers import ProviderManager
+    from lmchat.core.config_doctor import diagnose, render
+    verb = argv[0] if argv else "doctor"
+    cfg_path = Path.home() / ".pyttai" / "config.json"
+    if verb in ("doctor", "validate"):
+        if not cfg_path.exists():
+            print(f"no config at {cfg_path}", file=sys.stderr)
+            return 1
+        findings = diagnose(Config(cfg_path).data, ProviderManager.PROVIDERS)
+        print(render(findings))
+        return 1 if any(f["level"] == "error" for f in findings) else 0
+    print(f"unknown config verb: {verb} (known: doctor)", file=sys.stderr)
+    return 2
+
+
 def main():
     """Main entry point"""
+    if len(sys.argv) > 1 and sys.argv[1] == "config":
+        sys.exit(_run_config(sys.argv[2:]))
     import argparse
     
     # Parse command line arguments
