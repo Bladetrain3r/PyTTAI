@@ -1,124 +1,50 @@
-# Session Handover - 2026-06-09
+# PyTTAI — Session Handover
 
-Orientation doc for future sessions (human or Claude). Update or replace
-when state moves on; treat staleness as a bug.
+Orientation for future sessions (human or Claude). Newest first. Treat
+staleness as a bug: update when state moves. See `CLAUDE.md` for the working
+conventions and `BILL_OF_PARTS.md` for the component inventory.
 
-## Where things stand
+## 2026-09-05 — handed off from the Village architect session
 
-PyTTAI is at **v0.2.4 feature-complete on branch
-`claude/happy-hawking-8cg337`** (0.2.3 was dogfooded OK; PR #2 merged
-the first two commits to main, everything since awaits a follow-up PR).
-v0.2.4 delivered: token tracking + /tokenuse, reasoning config key,
-the slash-colon statement parser, the :ai / :ai@provider operator
-(stateless, chainable, lazy connect), and /file's three invocation
-forms. The spec has NO open questions. Next: owner dogfoods 0.2.4;
-then v0.2.5 (/ls, /file list input, /persist, logging).
+**Where things stand.** On `develop` (= `main`), post two merged PRs. The
+provider layer is on official SDKs (`anthropic`, `openai`, `google-genai`)
+with one `OpenAICompatibleProvider` base; registry covers lmstudio, ollama,
+openai, xai, claude/anthropic, gemini/google. Cloud keys now resolve from env
+(owner removed the cleartext keys from `config.json`). Local (ollama) path is
+the focus.
 
-## This session's work (3 pushes)
+**This session's work.**
+1. **ollama `num_ctx`** (PR #6, merged): `OllamaProvider` overrides
+   `stream_completion` to use ollama's native `/api/chat` so it can pass
+   `options.num_ctx` (the OpenAI `/v1` path silently drops it). Verified via
+   `/api/ps`. Drafted by a local model (ornith:35b).
+2. **config doctor** (PR #7, merged): `python3 main.py config doctor`
+   validates `~/.pyttai/config.json` against the provider registry and key
+   presence — unknown type, missing required key (config or env), and a
+   cleartext-key lint pushing secrets to env/secret-manager. Exit 1 on error,
+   so it works as a CI gate. `lmchat/core/config_doctor.py` + tests. Chosen
+   from a 3-model local bake-off (ornith:35b and qwen3.6:27b passed;
+   gpt-oss:20b failed on reasoning-budget exhaustion).
+3. Established the **local-model delegate loop** (see `CLAUDE.md`), the
+   **deploy-key push** setup, and this doc packet.
 
-1. **Provider modernization** (`2bc9b60`, merged via PR #2)
-   - `providers.py` rebuilt on official SDKs: `anthropic`, `openai`,
-     `google-genai`. One `OpenAICompatibleProvider` base covers
-     LM Studio / Ollama / xAI / OpenAI; `ClaudeProvider` and
-     `GeminiProvider` are separate. `LLMProvider` interface unchanged
-     (`test_connection` / `stream_completion` / `get_models`).
-   - API keys: config `api_key` first, then env vars
-     (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `XAI_API_KEY`,
-     `GEMINI_API_KEY`/`GOOGLE_API_KEY`).
-   - Gotchas encoded in the providers: newest Claude Opus models and
-     GPT-5/o-series reject `temperature` (sent conditionally); OpenAI
-     uses `max_completion_tokens`; base_url gets `/v1` appended if
-     missing (old config compat).
+**Next.**
+1. **config `init` verb** (roadmap v0.3.1): scaffold a starter config from a
+   template; sits beside `doctor` under `main.py config <verb>`. Good next
+   delegate — small, and its acceptance test is "the scaffolded config passes
+   `doctor`".
+2. **A locals applet** (`/models` or `/ollama`): live-list installed ollama
+   models via `/api/tags` (name, size, context), `use <model>` to switch the
+   current provider, optionally `pull`. Follows the `file_ops.py` handler
+   pattern. Directly kills the stale-config-vs-reality drift.
+3. Minor: `OllamaProvider`'s `/v1` strip is `base_url[:-3]`, fragile if a
+   config gives a trailing slash (`.../v1/`); default configs are fine.
 
-2. **Bug/cruft pass** (`4c20e62`, merged via PR #2)
-   - Failed turns (no output) are popped from history - fixes the
-     repeat-error-every-turn bug after an oversized image.
-   - Images > ~5MB base64 auto-downscale via Pillow (1568px/JPEG q85);
-     >10MB without Pillow refuses cleanly. Only the latest image keeps
-     its base64 in API payloads; older ones become
-     "[image omitted from history]" placeholders (stored history keeps
-     everything - substitution happens in `get_messages_for_api`).
-   - `/exit` flows through handler-returns-False; `packethandler.py`
-     and `AudioController` deleted; default max_tokens 1024 -> 4096.
+**How to work.** Branch `feature/*` off `develop`, PR back. Push works via the
+`architect.pem` deploy key (details in `CLAUDE.md`). Build with the delegate
+loop: spec + acceptance test, local model drafts, test gates, then integrate.
+Run `config doctor` before trusting a config.
 
-3. **CommandResult sweep + spec** (`b7ecddd`, on branch, NOT yet PR'd)
-   - All command handlers return `CommandResult`; single
-     `ChatController.render_result` prints. **Convention: success
-     content -> stdout, errors/progress -> stderr** (keeps `-c`
-     scripting pipeable).
-   - Handler return contract (documented in
-     `_register_builtin_commands`): `CommandResult` | `None` |
-     `False` (exit signal ONLY - never return send_message/send_image
-     bools from a handler or you'll exit the session).
-   - New: `Pychat/lmchat/docs/slash-colon-spec.md` - draft grammar for
-     the operator system. DECIDED vs OPEN sections.
-
-## Pending decisions (owner, after dogfooding)
-
-Spec OPEN questions: **none remain - spec is build-ready.**
-Resolved: q1 `::` dropped (token reserved); q2 pipes carry the
-plain-text rendering of results, JSON fallback, `:json` operator
-reserved for explicit structured flow; q3 pipeline `:ai` stateless
-(trailing-prompt form is the permanent chat-coupled path); q4 lazy
-connect for `:ai@provider`, strict fail at call time.
-Also decided: `:ai@provider` syntax, statement-vs-chat line
-classification, /file three forms (bare=cat / prompt=chat-coupled /
-:ai=pipeline), list input via ast.literal_eval, strict-unless-
-`file_skip_missing` failure semantics, TTS dropped in favour of STT
-around 0.4/0.5.
-
-## Agreed next steps
-
-v0.2.4 DONE (token tracking, reasoning key, parser, :ai, /file three
-forms). v0.2.5 mostly DONE: /ls (globs, NOTHING on no-match, DATA
-render field), /file list input (text; multi-modal lists deferred),
-/persist. Still open in 0.2.5: broader logging improvements (token CSV
-exists; general logging TBD). Result model now tri-state
-SUCCESS/NOTHING/ERROR (see CommandResult.nothing + is_nothing) and DATA
-results can carry a plain-text `render` (preferred by renderer + pipes).
-v0.2.6 committed patch DONE: context preload (context_file), /find,
-traversal mitigation (safe_resolve + optional workspace_root, opt-in
-standalone / auto-/workspace in container). Deferred to a later 0.2.x:
-/cd /pwd, token estimator. NEXT: 0.2.7 output handling - quiet flag for
-non-exceptional stderr, and provider label should show the config name
-(e.g. "grok") not the type ("xai"); the label is on STDOUT today and
-likely should move to stderr (status not content). v0.2.8: proper core logger
-module (stdlib logging; ISO-8601 UTC + flat fields; CommandResult ->
-status/code/format/msg; tri-state maps to severity; file + optional
-syslog) - DO PRE-0.3.0 while surface is small, retrofit existing
-print-to-stderr flows. v0.2.9: pytest suite formalizing the ad-hoc
-fake-SSE-server validation, after logging so it covers instrumented code. v0.3.0: :r/:rr/:i (data) +
-:s/:ss (control, bash &&/||) per spec. README now current (0.2.5).
-v0.3.1+: config management utility (init/validate/doctor/list-types).
-v0.3.2-0.3.3: Sequai - /sequai@model generates a bounded sequence of
-PyTTAI commands (registry = bounded list, parser = fence; NL -> .ptt).
-The AI-proposes-actions inverse of the BBS; kept safe by explicit
-invocation + recommend-first + bounded vocab. Open: loop semantics
-(one-shot vs observe-act). Distilled from ML-Extras MLAgent; don't
-import. Worth its own design doc when locking. v0.4+: BBS
-referential-memory layer - decisions locked in docs/bbs-design.md
-(USER-only, AI never auto-queries it; @variant verb namespace; @read
-mirrors /file; clean-room from an existing core, don't import the swarm
-version). Implementation conventions live in
-TECHNICAL_BRIEF "Core Conventions".
-
-## Testing approach used
-
-No test framework in repo. Sessions validated with inline scripts
-spinning a fake OpenAI-compatible SSE server on localhost
-(http.server + `data:` chunks), driving `ChatController` with a temp
-config via `config_path=`, asserting on stdout/stderr capture. Worth
-formalizing into `tests/` eventually.
-
-## Known rough edges (not yet addressed)
-
-- Local-provider vision unconfirmed: owner saw gemma vision fail
-  pre-downscale; likely the 12.8MB payload, but retest after 0.2.3
-  dogfood - if it still fails it's a real format issue.
-- `Roadmap.md` (repo root) is authoritative; docs-folder roadmaps are
-  archives. Root CHANGELIST is the live worklog and the owner thinks
-  in it - don't clobber, merge.
-- `blob/` autodocs are stale generated artifacts.
-- No pyproject.toml; `sys.path` hack in main.py.
-- Owner has separate memory-system plans; packethandler was retired to
-  make room. Don't reintroduce.
+---
+*Prior handover (v0.2.4 on the since-merged `claude/happy-hawking-8cg337`
+branch) is in git history if needed.*
